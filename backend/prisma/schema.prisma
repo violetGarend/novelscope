@@ -7,12 +7,22 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Genre {
+  玄幻
+  都市
+  仙侠
+  科幻
+  历史
+  其他
+}
+
 // Phase 0 基础模型 — 后续迭代扩展
 model User {
   id        String    @id @default(cuid())
   email     String    @unique
   name      String?
   projects  Project[]
+  novels    Novel[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -25,4 +35,77 @@ model Project {
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Novel {
+  id                 String              @id @default(cuid())
+  title              String
+  genre              Genre
+  userId             String
+  user               User                @relation(fields: [userId], references: [id])
+  chapters           Chapter[]
+  characterProfiles  CharacterProfile[]
+  settingConstraints SettingConstraint[]
+  createdAt          DateTime            @default(now())
+}
+
+model Chapter {
+  id        String             @id @default(cuid())
+  number    Int
+  title     String
+  content   String
+  novelId   String
+  novel     Novel              @relation(fields: [novelId], references: [id])
+  reports   EvaluationReport[]
+  createdAt DateTime           @default(now())
+}
+
+enum SettingCategory {
+  world_rule
+  power_system
+  geography
+  timeline
+  other
+}
+
+model EvaluationReport {
+  id                 String   @id @default(cuid())
+  chapterId          String
+  chapter            Chapter  @relation(fields: [chapterId], references: [id])
+  hookScore          Float
+  climaxDensity      Float
+  cliffhangerScore   Float
+  pacingScore        Float
+  overallScore       Float
+  consistencyIssues  Json
+  pacingCurve        Json
+  fillerDetection    Json
+  isPartial          Boolean  @default(false)
+  rawLLMResponse     String?
+  tokenUsage         Int?
+  costEstimate       Float?
+  createdAt          DateTime @default(now())
+}
+
+model CharacterProfile {
+  id              String   @id @default(cuid())
+  novelId         String
+  novel           Novel    @relation(fields: [novelId], references: [id])
+  name            String
+  aliases         String[]
+  traits          String?
+  relationships   Json?
+  firstAppearance Int?
+  lastUpdated     DateTime @updatedAt
+}
+
+model SettingConstraint {
+  id        String          @id @default(cuid())
+  novelId   String
+  novel     Novel           @relation(fields: [novelId], references: [id])
+  category  SettingCategory
+  key       String
+  value     String
+  source    Int?
+  isCore    Boolean         @default(false)
 }

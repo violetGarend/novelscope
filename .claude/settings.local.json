@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx jest *)",
+      "Bash(npm test *)",
+      "Bash(npm run test *)",
+      "Bash(npx vitest *)",
+      "Bash(npx prisma generate *)"
+    ]
+  }
+}
