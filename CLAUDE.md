@@ -36,7 +36,7 @@ CEO审查报告: `NovelScope-CEO审查报告.md`
 
 ## 开发模式
 
-单人+AI辅助开发。当前处于 Phase 0（验证期），尚未开始编码。参考产品立项文档第五章获取完整里程碑。
+单人+AI辅助开发。当前处于 Phase 0（验证期），Issue #1-#3 已完成（Prisma Schema + 规则引擎），共 26 个测试通过。参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 
 ## Skill routing
 

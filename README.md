@@ -46,11 +46,20 @@ npm run dev
 │   └── src/
 │       ├── app/api/   # API 路由
 │       ├── lib/       # Prisma 客户端等
-│       └── services/  # 业务逻辑
-├── docs/              # 文档
+│       └── services/  # 业务逻辑（climax/pacing/filler）
+├── docs/              # 文档（PRD、issues）
 └── DESIGN.md          # 设计系统
 ```
 
-## 当前阶段
+## 开发进度
 
-Phase 0（验证期）— 构建追读力评估原型，验证作者付费意愿。
+Phase 0（验证期）— P0 Issue #1-#3 已完成，共 26 个测试通过。
+
+| Issue | 内容 | 状态 |
+|-------|------|------|
+| #1 | Prisma Schema 扩展（7 模型 + 2 enum） | ✅ |
+| #2 | 关键词词典 + 爽点密度规则引擎 | ✅ |
+| #3 | 节奏分析 + 注水检测规则引擎 | ✅ |
+| #4 | DeepSeek LLM Client | 待开始 |
+| #5 | 评估管线编排 | 待开始 |
+| #6-#9 | API 端点 + Web UI | 待开始 |
