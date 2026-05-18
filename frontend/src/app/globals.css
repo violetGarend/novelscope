@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Colors — from DESIGN.md */
+  --color-primary: #1E40AF;
+  --color-primary-light: #3B82F6;
+  --color-primary-lighter: #93C5FD;
+  --color-primary-bg: #EFF6FF;
+
+  --color-background: #F5F3EF;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F0EDE8;
+
+  --color-border: #E5E5E0;
+  --color-border-light: #EDEBE6;
+
+  --color-text: #1A1A1A;
+  --color-text-secondary: #525252;
+  --color-text-muted: #A3A39E;
+
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-warning: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-error: #DC2626;
+  --color-error-bg: #FEF2F2;
+  --color-info: #2563EB;
+  --color-info-bg: #EFF6FF;
+
+  /* Score colors */
+  --color-score-high: #059669;
+  --color-score-mid: #D97706;
+  --color-score-low: #DC2626;
+
+  /* Fonts */
+  --font-sans: var(--font-plus-jakarta-sans), "Source Han Sans SC", "Noto Sans SC", sans-serif;
+  --font-display: var(--font-instrument-serif), "Source Han Serif SC", "Noto Serif SC", serif;
+  --font-mono: var(--font-geist-mono), monospace;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
