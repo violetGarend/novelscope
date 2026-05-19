@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback } from "react";
 import { ProgressBar } from "./ProgressBar";
 import { ReportCard, ErrorReport, type EvaluationReport } from "./ReportCard";
+import { EvaluationHistory } from "./EvaluationHistory";
+import { saveEvaluation } from "./historyStore";
 
 type Phase = "idle" | "evaluating" | "done" | "error";
 
@@ -72,9 +74,18 @@ export function EvaluatePage() {
             if (event.type === "progress") {
               setCurrentStep(event.step);
             } else if (event.type === "result") {
-              setResult(event as EvaluationReport);
+              const report = event as EvaluationReport;
+              setResult(report);
               setCurrentStep(8);
               setPhase("done");
+              saveEvaluation({
+                id: `eval_${Date.now()}`,
+                timestamp: Date.now(),
+                reportId: report.reportId,
+                overallScore: report.scores.overallScore,
+                textSummary: text.slice(0, 100),
+                fullReport: report,
+              });
             }
           } catch {
             // skip malformed lines
@@ -147,6 +158,18 @@ export function EvaluatePage() {
         >
           开始评估
         </button>
+      </div>
+
+      <div className="mt-10">
+        <h3 className="font-display text-lg text-text mb-4">评估历史</h3>
+        <EvaluationHistory
+          onSelect={(entry) => {
+            if (entry.fullReport) {
+              setResult(entry.fullReport);
+              setPhase("done");
+            }
+          }}
+        />
       </div>
     </div>
   );

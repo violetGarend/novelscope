@@ -20,7 +20,13 @@ const FULL_REPORT: EvaluationReport = {
   },
   pacingResult: {
     score: 5,
-    curve: [{ paragraph: 1, tension: 5, type: "dialogue" }],
+    curve: [
+      { paragraph: 1, tension: 3, type: "description" },
+      { paragraph: 2, tension: 5, type: "dialogue" },
+      { paragraph: 3, tension: 8, type: "action" },
+      { paragraph: 4, tension: 6, type: "dialogue" },
+      { paragraph: 5, tension: 9, type: "action" },
+    ],
     cv: 0.45,
     typeRatio: { action: 0.1, dialogue: 0.6, description: 0.3 },
   },
@@ -80,6 +86,30 @@ describe("ReportCard — full report", () => {
     render(<ReportCard report={FULL_REPORT} />);
     // 节奏分数是 5，不算低分（>=5），不应有低分警告
     expect(screen.queryByText(/低于.*分/)).toBeNull();
+  });
+
+  it("should render pacing curve SVG with tension data", () => {
+    render(<ReportCard report={FULL_REPORT} />);
+    expect(screen.getByLabelText("节奏曲线")).toBeInTheDocument();
+    expect(screen.getByText("节奏曲线")).toBeInTheDocument();
+  });
+
+  it("should show pacing stats (CV + type ratio)", () => {
+    render(<ReportCard report={FULL_REPORT} />);
+    expect(screen.getByText(/变异系数 CV:/)).toBeInTheDocument();
+    expect(screen.getByText("0.45")).toBeInTheDocument();
+    expect(screen.getByText(/10%/)).toBeInTheDocument();
+    expect(screen.getByText(/60%/)).toBeInTheDocument();
+    expect(screen.getByText(/30%/)).toBeInTheDocument();
+  });
+
+  it("should not render pacing section when curve is empty", () => {
+    const noCurveReport = {
+      ...FULL_REPORT,
+      pacingResult: { ...FULL_REPORT.pacingResult, curve: [] },
+    };
+    render(<ReportCard report={noCurveReport} />);
+    expect(screen.queryByLabelText("节奏曲线")).toBeNull();
   });
 
   it("should show report tone as editorial feedback, not exam result", () => {

@@ -1,4 +1,5 @@
 import { ScoreBadge } from "./ScoreBadge";
+import { PacingCurve } from "./PacingCurve";
 
 export interface EvaluationReport {
   reportId: string;
@@ -100,6 +101,36 @@ export function ReportCard({ report }: { report: EvaluationReport }) {
           <ScoreBadge score={scores.pacingScore} label="节奏" />
         </div>
       </div>
+
+      {/* Pacing Curve */}
+      {report.pacingResult.curve.length > 0 && (
+        <>
+          <SectionHeading>节奏曲线</SectionHeading>
+          <div className="p-4 bg-surface rounded-lg border border-border">
+            <PacingCurve
+              data={report.pacingResult.curve.map((p) => ({
+                paragraph: p.paragraph,
+                tension: p.tension,
+                type: p.type as "action" | "dialogue" | "description",
+              }))}
+            />
+            <div className="mt-4 flex items-center justify-center gap-6 text-xs text-text-muted">
+              <span>
+                变异系数 CV: <span className="font-mono text-text">{report.pacingResult.cv.toFixed(2)}</span>
+              </span>
+              <span>
+                动作 <span className="font-mono text-text">{(report.pacingResult.typeRatio.action * 100).toFixed(0)}%</span>
+              </span>
+              <span>
+                对话 <span className="font-mono text-text">{(report.pacingResult.typeRatio.dialogue * 100).toFixed(0)}%</span>
+              </span>
+              <span>
+                描写 <span className="font-mono text-text">{(report.pacingResult.typeRatio.description * 100).toFixed(0)}%</span>
+              </span>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Highlights — 优势先行 */}
       {hasLLM && llmResult.highlights.length > 0 && (

@@ -3,6 +3,15 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EvaluatePage } from "./EvaluatePage";
 
+// Mock localStorage
+const storage = new Map<string, string>();
+beforeEach(() => {
+  storage.clear();
+  vi.spyOn(Storage.prototype, "getItem").mockImplementation((key) => storage.get(String(key)) ?? null);
+  vi.spyOn(Storage.prototype, "setItem").mockImplementation((key, value) => storage.set(String(key), String(value)));
+  vi.spyOn(Storage.prototype, "removeItem").mockImplementation((key) => { storage.delete(String(key)); });
+});
+
 function createSSEMockStream(events: object[]) {
   const encoder = new TextEncoder();
   const chunks = events.map((e) => encoder.encode(`data: ${JSON.stringify(e)}\n\n`));
@@ -21,9 +30,6 @@ function createSSEMockStream(events: object[]) {
 }
 
 describe("EvaluatePage", () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
 
   it("should render text input and submit button initially", () => {
     render(<EvaluatePage />);
