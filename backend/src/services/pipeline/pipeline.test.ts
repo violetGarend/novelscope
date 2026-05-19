@@ -147,6 +147,82 @@ describe("EvaluationPipeline", () => {
     expect(result.scores.pacingScore).toBe(7); // from rule engine
   });
 
+  describe("onProgress callback", () => {
+    it("should call onProgress for all 7 steps in correct order", async () => {
+      mockEvaluateWithLLM.mockResolvedValue({
+        hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
+        consistencyIssues: [], highlights: [], suggestions: [],
+      });
+
+      const progressCalls: { step: number; stepName: string }[] = [];
+      const pipeline = createEvaluationPipeline(
+        {
+          analyzeClimax: mockAnalyzeClimax,
+          analyzePacing: mockAnalyzePacing,
+          detectFiller: mockDetectFiller,
+          evaluateWithLLM: mockEvaluateWithLLM,
+        },
+        {
+          onProgress: (event) => progressCalls.push(event),
+        }
+      );
+
+      await pipeline.evaluateChapter("测试文本");
+
+      expect(progressCalls.length).toBe(6);
+      expect(progressCalls.map((c) => c.step)).toEqual([2, 3, 4, 5, 6, 7]);
+      expect(progressCalls.map((c) => c.stepName)).toEqual([
+        "分析爽点密度",
+        "分析节奏",
+        "评估Hook强度",
+        "评估章末悬念",
+        "检查一致性",
+        "生成报告",
+      ]);
+    });
+
+    it("should still call onProgress even when LLM fails", async () => {
+      mockEvaluateWithLLM.mockRejectedValue(new Error("API timeout"));
+
+      const progressCalls: { step: number; stepName: string }[] = [];
+      const pipeline = createEvaluationPipeline(
+        {
+          analyzeClimax: mockAnalyzeClimax,
+          analyzePacing: mockAnalyzePacing,
+          detectFiller: mockDetectFiller,
+          evaluateWithLLM: mockEvaluateWithLLM,
+        },
+        {
+          onProgress: (event) => progressCalls.push(event),
+        }
+      );
+
+      await pipeline.evaluateChapter("测试文本");
+
+      // LLM 失败时仍应触发步骤 4 和 5（LLM 调用前），但步骤 6 会触发（catch 后），步骤 7 也会触发
+      expect(progressCalls.length).toBeGreaterThanOrEqual(5);
+      const stepNames = progressCalls.map((c) => c.stepName);
+      expect(stepNames).toContain("分析爽点密度");
+      expect(stepNames).toContain("生成报告");
+    });
+
+    it("should not throw when onProgress is not provided (backward compatibility)", async () => {
+      mockEvaluateWithLLM.mockResolvedValue({
+        hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
+        consistencyIssues: [], highlights: [], suggestions: [],
+      });
+
+      const pipeline = createEvaluationPipeline({
+        analyzeClimax: mockAnalyzeClimax,
+        analyzePacing: mockAnalyzePacing,
+        detectFiller: mockDetectFiller,
+        evaluateWithLLM: mockEvaluateWithLLM,
+      });
+
+      await expect(pipeline.evaluateChapter("测试文本")).resolves.toBeDefined();
+    });
+  });
+
   it("should include rule engine results in output", async () => {
     // Arrange
     mockEvaluateWithLLM.mockResolvedValue({

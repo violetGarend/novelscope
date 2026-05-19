@@ -5,6 +5,11 @@ import { analyzeClimax } from "@/services/climax";
 import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
 import { createLLMClient } from "@/services/llm";
+import { CORS_HEADERS } from "@/lib/cors";
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
 
 const pipeline = createEvaluationPipeline({
   analyzeClimax,
@@ -38,7 +43,7 @@ export async function POST(request: Request) {
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -54,11 +59,11 @@ export async function POST(request: Request) {
       isPartial: result.isPartial,
       tokenUsage: null,
       costEstimate: null,
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error) {
     return NextResponse.json(
       { error: { code: "INTERNAL_ERROR", message: "评估过程中发生错误" } },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

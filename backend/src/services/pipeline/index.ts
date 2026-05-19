@@ -14,6 +14,15 @@ export interface EvaluationResult {
   isPartial: boolean;
 }
 
+export interface ProgressEvent {
+  step: number;
+  stepName: string;
+}
+
+export interface PipelineOptions {
+  onProgress?: (event: ProgressEvent) => void;
+}
+
 export interface PipelineDependencies {
   analyzeClimax: (text: string) => ClimaxResult;
   analyzePacing: (text: string) => PacingResult;
@@ -22,14 +31,26 @@ export interface PipelineDependencies {
 }
 
 export interface EvaluationPipeline {
-  evaluateChapter(text: string): Promise<EvaluationResult>;
+  evaluateChapter(text: string, options?: PipelineOptions): Promise<EvaluationResult>;
 }
 
-export function createEvaluationPipeline(deps: PipelineDependencies): EvaluationPipeline {
+export function createEvaluationPipeline(
+  deps: PipelineDependencies,
+  options?: PipelineOptions
+): EvaluationPipeline {
   return {
-    async evaluateChapter(text: string): Promise<EvaluationResult> {
-      // 阶段 1：运行规则引擎，提取结构化信号
+    async evaluateChapter(
+      text: string,
+      callOptions?: PipelineOptions
+    ): Promise<EvaluationResult> {
+      const notify = callOptions?.onProgress ?? options?.onProgress;
+
+      // 步骤 2：分析爽点密度
+      notify?.({ step: 2, stepName: "分析爽点密度" });
       const climaxResult = deps.analyzeClimax(text);
+
+      // 步骤 3：分析节奏
+      notify?.({ step: 3, stepName: "分析节奏" });
       const pacingResult = deps.analyzePacing(text);
       const fillerResult = deps.detectFiller(text);
 
@@ -41,8 +62,15 @@ export function createEvaluationPipeline(deps: PipelineDependencies): Evaluation
       };
       const prompt = buildEvaluationPrompt(signals);
 
+      // 步骤 4-5：LLM 评估阶段
+      notify?.({ step: 4, stepName: "评估Hook强度" });
+      notify?.({ step: 5, stepName: "评估章末悬念" });
+
       // 阶段 3：调用 LLM 进行评估
       const llmResult = await deps.evaluateWithLLM(text, prompt).catch(() => null);
+
+      // 步骤 6：检查一致性
+      notify?.({ step: 6, stepName: "检查一致性" });
 
       const isPartial = llmResult === null;
 
@@ -55,6 +83,9 @@ export function createEvaluationPipeline(deps: PipelineDependencies): Evaluation
       };
 
       const scores = guardScores(rawScores);
+
+      // 步骤 7：生成报告
+      notify?.({ step: 7, stepName: "生成报告" });
 
       return {
         climaxResult,
