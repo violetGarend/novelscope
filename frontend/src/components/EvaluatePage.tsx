@@ -2,12 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { ProgressBar } from "./ProgressBar";
-
-interface EvaluationResult {
-  reportId: string;
-  scores: { overallScore: number };
-  isPartial: boolean;
-}
+import { ReportCard, ErrorReport, type EvaluationReport } from "./ReportCard";
 
 type Phase = "idle" | "evaluating" | "done" | "error";
 
@@ -15,9 +10,14 @@ export function EvaluatePage() {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [currentStep, setCurrentStep] = useState(0);
-  const [result, setResult] = useState<EvaluationResult | null>(null);
+  const [result, setResult] = useState<EvaluationReport | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  const handleRetry = useCallback(() => {
+    setPhase("idle");
+    setErrorMessage("");
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (text.length < 100) return;
@@ -72,8 +72,8 @@ export function EvaluatePage() {
             if (event.type === "progress") {
               setCurrentStep(event.step);
             } else if (event.type === "result") {
-              setResult(event);
-              setCurrentStep(8); // all steps completed
+              setResult(event as EvaluationReport);
+              setCurrentStep(8);
               setPhase("done");
             }
           } catch {
@@ -110,43 +110,22 @@ export function EvaluatePage() {
 
   if (phase === "done" && result) {
     return (
-      <div className="max-w-lg mx-auto p-8">
-        <h2 className="font-display text-2xl text-text mb-6">评估完成</h2>
-        <ProgressBar currentStep={8} />
-        <div className="mt-8 p-6 bg-surface rounded-lg border border-border">
-          <p className="text-sm text-text-secondary">报告 ID: {result.reportId}</p>
-          <p className="mt-2 font-mono text-3xl text-primary">
-            {result.scores.overallScore}/10
-          </p>
-          {result.isPartial && (
-            <p className="mt-2 text-sm text-warning">部分评估结果（LLM 未启用）</p>
-          )}
+      <>
+        <ReportCard report={result} />
+        <div className="text-center pb-12">
+          <button
+            onClick={() => { setPhase("idle"); setCurrentStep(0); setResult(null); }}
+            className="px-6 py-2 text-sm text-primary hover:text-primary-light transition-colors"
+          >
+            ← 重新评估
+          </button>
         </div>
-        <button
-          onClick={() => { setPhase("idle"); setCurrentStep(0); setResult(null); }}
-          className="mt-4 px-4 py-2 text-sm text-primary hover:text-primary-light transition-colors"
-        >
-          ← 重新评估
-        </button>
-      </div>
+      </>
     );
   }
 
   if (phase === "error") {
-    return (
-      <div className="max-w-lg mx-auto p-8">
-        <div className="p-6 bg-error-bg border border-error rounded-lg">
-          <p className="text-error font-medium">评估失败</p>
-          <p className="mt-1 text-sm text-text-secondary">{errorMessage}</p>
-        </div>
-        <button
-          onClick={() => setPhase("idle")}
-          className="mt-4 px-4 py-2 text-sm text-primary hover:text-primary-light transition-colors"
-        >
-          ← 返回重试
-        </button>
-      </div>
-    );
+    return <ErrorReport message={errorMessage} onRetry={handleRetry} />;
   }
 
   return (

@@ -38,15 +38,11 @@ describe("EvaluatePage", () => {
 
   it("should show progress bar and hide form when evaluation starts", async () => {
     const user = userEvent.setup();
+    // Only send progress events (no result) to stay in evaluating phase
     const stream = createSSEMockStream([
       { type: "progress", step: 1, stepName: "正在验证文本" },
       { type: "progress", step: 2, stepName: "分析爽点密度" },
       { type: "progress", step: 3, stepName: "分析节奏" },
-      { type: "progress", step: 4, stepName: "评估Hook强度" },
-      { type: "progress", step: 5, stepName: "评估章末悬念" },
-      { type: "progress", step: 6, stepName: "检查一致性" },
-      { type: "progress", step: 7, stepName: "生成报告" },
-      { type: "result", reportId: "test_1", scores: { overallScore: 7 }, isPartial: false },
     ]);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -68,8 +64,44 @@ describe("EvaluatePage", () => {
     expect(screen.queryByPlaceholderText(/输入章节文本/i)).toBeNull();
   });
 
-  it("should show completed progress when evaluation finishes", async () => {
+  it("should show ReportCard with full report after evaluation finishes", async () => {
     const user = userEvent.setup();
+    const resultPayload = {
+      type: "result",
+      reportId: "test_1",
+      scores: {
+        overallScore: 7.2,
+        hookScore: 8,
+        climaxScore: 7,
+        cliffhangerScore: 6,
+        pacingScore: 5,
+      },
+      climaxResult: {
+        score: 7,
+        matchedKeywords: ["打脸"],
+        keywordCategories: { reversal: ["打脸"], shock: [], breakthrough: [], conflict: [], emotion: [] },
+        dialogueDensity: 0.5,
+        conflictDensity: 0.3,
+      },
+      pacingResult: {
+        score: 5,
+        curve: [{ paragraph: 1, tension: 5, type: "dialogue" }],
+        cv: 0.45,
+        typeRatio: { action: 0.1, dialogue: 0.6, description: 0.3 },
+      },
+      fillerResult: { items: [], suspiciousPairs: [] },
+      llmResult: {
+        hookScore: 8,
+        climaxScore: 7,
+        cliffhangerScore: 6,
+        pacingScore: 5,
+        consistencyIssues: [],
+        highlights: ["开头冲突感强"],
+        suggestions: ["中间段落可以更紧凑"],
+      },
+      isPartial: false,
+    };
+
     const stream = createSSEMockStream([
       { type: "progress", step: 1, stepName: "正在验证文本" },
       { type: "progress", step: 2, stepName: "分析爽点密度" },
@@ -78,7 +110,7 @@ describe("EvaluatePage", () => {
       { type: "progress", step: 5, stepName: "评估章末悬念" },
       { type: "progress", step: 6, stepName: "检查一致性" },
       { type: "progress", step: 7, stepName: "生成报告" },
-      { type: "result", reportId: "test_1", scores: { overallScore: 7 }, isPartial: false },
+      resultPayload,
     ]);
 
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -93,16 +125,16 @@ describe("EvaluatePage", () => {
     await user.type(textarea, "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4));
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // All steps should be completed eventually
+    // ReportCard should appear with scores and highlights
     await waitFor(() => {
-      const items = screen.getAllByRole("listitem");
-      items.forEach((item) => {
-        expect(item.getAttribute("data-state")).toBe("completed");
-      });
+      expect(screen.getByText("评估报告")).toBeInTheDocument();
     });
+    expect(screen.getByText("7.2")).toBeInTheDocument();
+    expect(screen.getByText("亮点分析")).toBeInTheDocument();
+    expect(screen.getByText("开头冲突感强")).toBeInTheDocument();
   });
 
-  it("should show error message when fetch fails", async () => {
+  it("should show ErrorReport with retry button when fetch fails", async () => {
     const user = userEvent.setup();
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Network error"));
 
@@ -114,6 +146,7 @@ describe("EvaluatePage", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/评估失败/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /重试/i })).toBeInTheDocument();
     });
   });
 

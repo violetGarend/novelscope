@@ -9,7 +9,7 @@
 | 5 | [LLM 一致性保障 + 评估管线编排](005-consistency-guard-pipeline.md) | AFK | #2, #3, #4 | ✅ 完成 |
 | 6 | [POST /api/evaluate 端点 + 基础 UI](006-evaluate-api-basic-ui.md) | AFK | #5 | ✅ 完成 |
 | 7 | [7 步进度条](007-progress-bar.md) | AFK | #6 | ✅ 完成 |
-| 8 | [完整报告展示](008-report-display.md) | AFK | #6 | 待开始 |
+| 8 | [完整报告展示](008-report-display.md) | AFK | #6 | ✅ 完成 |
 | 9 | [节奏曲线 SVG + 评估历史](009-pacing-curve-history.md) | AFK | #6 | 待开始 |
 | 10 | [信号注入架构重构](010-signal-injection-architecture.md) | AFK | #5, #6 | ✅ 完成 |
 
@@ -22,4 +22,4 @@
                                       └── #10 信号注入重构  └── #9 曲线+历史
 ```
 
-**当前进度：** 105 个测试通过，#1-#7 + #10 已完成
+**当前进度：** 126 个测试通过，#1-#8 + #10 已完成
