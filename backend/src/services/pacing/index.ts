@@ -7,6 +7,8 @@ export interface PacingCurvePoint {
 export interface PacingResult {
   score: number;
   curve: PacingCurvePoint[];
+  cv: number;
+  typeRatio: { action: number; dialogue: number; description: number };
 }
 
 const ACTION_KEYWORDS = [
@@ -53,12 +55,12 @@ function calculateRatioScore(curve: PacingCurvePoint[]): number {
 
 export function analyzePacing(text: string): PacingResult {
   if (!text || text.trim().length === 0) {
-    return { score: 0, curve: [] };
+    return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }
 
   const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
-    return { score: 0, curve: [] };
+    return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }
 
   const curve: PacingCurvePoint[] = paragraphs.map((p, i) => {
@@ -77,5 +79,14 @@ export function analyzePacing(text: string): PacingResult {
   const rawScore = cvScore * 0.4 + ratioScore * 0.6;
   const score = Math.round(Math.min(10, Math.max(0, rawScore)) * 10) / 10;
 
-  return { score, curve };
+  const counts = { action: 0, dialogue: 0, description: 0 };
+  for (const p of curve) counts[p.type]++;
+  const total = curve.length;
+  const typeRatio = {
+    action: Math.round((counts.action / total) * 100) / 100,
+    dialogue: Math.round((counts.dialogue / total) * 100) / 100,
+    description: Math.round((counts.description / total) * 100) / 100,
+  };
+
+  return { score, curve, cv: Math.round(cv * 100) / 100, typeRatio };
 }

@@ -56,4 +56,40 @@ describe("PacingAnalyzer", () => {
     const result = analyzePacing(text);
     expect(result.curve.every((p) => p.type === "dialogue")).toBe(true);
   });
+
+  it("should expose cv (coefficient of variation)", () => {
+    const text = [
+      "他猛地拔出长剑，朝着敌人劈了过去。",
+      "「你来了。」「是的，我来了。」",
+      "远处的山峦在夕阳下显得格外宁静，微风拂过树梢，鸟儿归巢。",
+    ].join("\n\n");
+    const result = analyzePacing(text);
+    expect(result.cv).toBeDefined();
+    expect(result.cv).toBeGreaterThanOrEqual(0);
+  });
+
+  it("should expose typeRatio with action/dialogue/description counts", () => {
+    const text = [
+      "他猛地拔出长剑，朝着敌人劈了过去。",
+      "「你来了。」「是的，我来了。」",
+      "远处的山峦在夕阳下显得格外宁静。",
+    ].join("\n\n");
+    const result = analyzePacing(text);
+    expect(result.typeRatio).toBeDefined();
+    expect(result.typeRatio).toHaveProperty("action");
+    expect(result.typeRatio).toHaveProperty("dialogue");
+    expect(result.typeRatio).toHaveProperty("description");
+    expect(result.typeRatio.action).toBeGreaterThanOrEqual(0);
+    expect(result.typeRatio.dialogue).toBeGreaterThanOrEqual(0);
+    expect(result.typeRatio.description).toBeGreaterThanOrEqual(0);
+    // Sum should be ~1 (ratios, allow rounding)
+    const sum = result.typeRatio.action + result.typeRatio.dialogue + result.typeRatio.description;
+    expect(sum).toBeCloseTo(1, 1);
+  });
+
+  it("should return cv=0 and equal typeRatio for empty text", () => {
+    const result = analyzePacing("");
+    expect(result.cv).toBe(0);
+    expect(result.typeRatio).toEqual({ action: 0, dialogue: 0, description: 0 });
+  });
 });

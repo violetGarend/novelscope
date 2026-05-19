@@ -10,20 +10,22 @@ const pipeline = createEvaluationPipeline({
   analyzeClimax,
   analyzePacing,
   detectFiller,
-  evaluateWithLLM: async () => {
+  evaluateWithLLM: async (chapterText: string, prompt: string) => {
     // P0 阶段：如果没有 API key，返回 mock 数据
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
       return {
         hookScore: 5,
+        climaxScore: 5,
         cliffhangerScore: 5,
+        pacingScore: 5,
         consistencyIssues: [],
         highlights: ["（P0 阶段：LLM 评估未启用）"],
         suggestions: ["建议配置 DEEPSEEK_API_KEY 以启用完整评估"],
       };
     }
     const client = createLLMClient({ apiKey });
-    return client.evaluateWithLLM("", "");
+    return client.evaluateWithLLM(chapterText, prompt);
   },
 });
 

@@ -6,15 +6,15 @@
 
 ## Acceptance criteria
 
-- [ ] POST /api/evaluate：接收 `chapterText` (100-50000 字符)
-- [ ] 输入验证：null/空→400, <100字→400, >50000字→400, 非中文→400
-- [ ] 错误响应格式：`{ error: { code, message, details } }`
-- [ ] 成功响应：完整评估报告 JSON（含 reportId, 各项分数, isPartial, tokenUsage, costEstimate）
-- [ ] 评估结果通过 Prisma 写入 EvaluationReport 表
-- [ ] 前端大文本输入框 + 实时字数统计 + "开始评估" 按钮
-- [ ] 前端调用 /api/evaluate 并展示综合评分（大号数字 + 颜色编码）
-- [ ] 基础错误处理：输入验证失败显示红色提示，API 超时显示重试按钮
-- [ ] Jest 集成测试：输入验证（所有边界情况）、成功/失败响应格式
+- [x] POST /api/evaluate：接收 `chapterText` (100-50000 字符)
+- [x] 输入验证：null/空→400, <100字→400, >50000字→400, 非中文→400
+- [x] 错误响应格式：`{ error: { code, message, details } }`
+- [x] 成功响应：完整评估报告 JSON（含 reportId, 各项分数, isPartial, tokenUsage, costEstimate）
+- [x] 评估结果通过 Prisma 写入 EvaluationReport 表
+- [x] 前端大文本输入框 + 实时字数统计 + "开始评估" 按钮
+- [x] 前端调用 /api/evaluate 并展示综合评分（大号数字 + 颜色编码）
+- [x] 基础错误处理：输入验证失败显示红色提示，API 超时显示重试按钮
+- [x] Jest 集成测试：输入验证（所有边界情况）、成功/失败响应格式
 
 ## Blocked by
 

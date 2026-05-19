@@ -39,22 +39,19 @@
 Next.js → Python (全部评估逻辑) → DeepSeek
 ```
 
-**新架构：**
+**新架构（信号注入）：**
 ```
 Next.js API Routes (Vercel)
-├── 规则引擎（本地）
-│   ├── 爽点密度（关键词匹配）
-│   ├── 节奏分析（段落长度/对话密度）
-│   └── 注水检测（字符串相似度）
 └── /api/evaluate
     ├── 输入校验 (null/empty/length/language)
-    ├── 并行执行 (Promise.all)
-    │   ├── 规则引擎（本地）
-    │   └── DeepSeek API 直接调用（openai npm 包）
-    │       ├── Hook 强度（LLM）
-    │       ├── 章末悬念（LLM）
-    │       └── 一致性检查（LLM）
-    ├── 结果合并 + 部分评估处理
+    ├── 阶段 1: 规则引擎信号提取（本地）
+    │   ├── 爽点密度 → keywordCategories, matchedKeywords
+    │   ├── 节奏分析 → cv, typeRatio, curve
+    │   └── 注水检测 → suspiciousPairs, items
+    ├── 阶段 2: 信号注入 LLM prompt 构建
+    ├── 阶段 3: LLM 评估（DeepSeek API，输出全部 4 维分数）
+    ├── 阶段 4: Guard（clamp + 加权综合分）
+    ├── 降级: LLM 失败 → 使用规则引擎参考分数
     └── 数据库存储 (Prisma → PostgreSQL/Supabase)
 ```
 

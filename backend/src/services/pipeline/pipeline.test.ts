@@ -11,27 +11,38 @@ const mockAnalyzePacing = jest.fn<(text: string) => PacingResult>();
 const mockDetectFiller = jest.fn<(text: string) => FillerResult>();
 const mockEvaluateWithLLM = jest.fn<(text: string, prompt: string) => Promise<LLMResult>>();
 
+const MOCK_CLIMAX_RESULT: ClimaxResult = {
+  score: 8,
+  matchedKeywords: ["打脸", "碾压"],
+  keywordCategories: { reversal: ["打脸", "碾压"], shock: [], breakthrough: [], conflict: [], emotion: [] },
+  dialogueDensity: 0.5,
+  conflictDensity: 0.3,
+};
+
+const MOCK_PACING_RESULT: PacingResult = {
+  score: 7,
+  curve: [{ paragraph: 1, tension: 5, type: "dialogue" }],
+  cv: 0.45,
+  typeRatio: { action: 0, dialogue: 1, description: 0 },
+};
+
+const MOCK_FILLER_RESULT: FillerResult = { items: [], suspiciousPairs: [] };
+
 describe("EvaluationPipeline", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAnalyzeClimax.mockReturnValue(MOCK_CLIMAX_RESULT);
+    mockAnalyzePacing.mockReturnValue(MOCK_PACING_RESULT);
+    mockDetectFiller.mockReturnValue(MOCK_FILLER_RESULT);
   });
 
-  it("should combine rule engine and LLM results", async () => {
-    // Arrange
-    mockAnalyzeClimax.mockReturnValue({
-      score: 8,
-      matchedKeywords: ["打脸", "碾压"],
-      dialogueDensity: 0.5,
-      conflictDensity: 0.3,
-    });
-    mockAnalyzePacing.mockReturnValue({
-      score: 7,
-      curve: [{ paragraph: 1, tension: 5, type: "dialogue" }],
-    });
-    mockDetectFiller.mockReturnValue({ items: [] });
+  it("should use LLM scores when LLM succeeds (signal injection architecture)", async () => {
+    // Arrange — LLM 出全部 4 个分数
     mockEvaluateWithLLM.mockResolvedValue({
       hookScore: 9,
+      climaxScore: 8,
       cliffhangerScore: 8,
+      pacingScore: 7,
       consistencyIssues: [],
       highlights: ["开头引人入胜"],
       suggestions: [],
@@ -47,28 +58,26 @@ describe("EvaluationPipeline", () => {
     // Act
     const result = await pipeline.evaluateChapter("测试文本");
 
-    // Assert
-    expect(result.climaxResult.score).toBe(8);
-    expect(result.pacingResult.score).toBe(7);
-    expect(result.fillerResult.items).toEqual([]);
-    expect(result.llmResult.hookScore).toBe(9);
-    expect(result.isPartial).toBe(false);
+    // Assert — 分数来自 LLM
     expect(result.scores.hookScore).toBe(9);
     expect(result.scores.climaxScore).toBe(8);
+    expect(result.scores.cliffhangerScore).toBe(8);
     expect(result.scores.pacingScore).toBe(7);
+    expect(result.isPartial).toBe(false);
+    expect(result.llmResult).not.toBeNull();
   });
 
-  it("should call rule engine and LLM in parallel", async () => {
-    // Arrange - 使用延迟模拟并行执行
-    let resolveLLM: (value: LLMResult) => void;
-    const llmPromise = new Promise<LLMResult>((resolve) => {
-      resolveLLM = resolve;
+  it("should pass signal-informed prompt to LLM", async () => {
+    // Arrange
+    mockEvaluateWithLLM.mockResolvedValue({
+      hookScore: 5,
+      climaxScore: 5,
+      cliffhangerScore: 5,
+      pacingScore: 5,
+      consistencyIssues: [],
+      highlights: [],
+      suggestions: [],
     });
-
-    mockAnalyzeClimax.mockReturnValue({ score: 5, matchedKeywords: [], dialogueDensity: 0, conflictDensity: 0 });
-    mockAnalyzePacing.mockReturnValue({ score: 5, curve: [] });
-    mockDetectFiller.mockReturnValue({ items: [] });
-    mockEvaluateWithLLM.mockReturnValue(llmPromise);
 
     const pipeline = createEvaluationPipeline({
       analyzeClimax: mockAnalyzeClimax,
@@ -78,36 +87,47 @@ describe("EvaluationPipeline", () => {
     });
 
     // Act
-    const resultPromise = pipeline.evaluateChapter("测试文本");
+    await pipeline.evaluateChapter("测试文本");
 
-    // 让微任务执行
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    // 规则引擎应该已经调用（同步调用在 Promise.resolve().then 中）
-    expect(mockAnalyzeClimax).toHaveBeenCalled();
-    expect(mockAnalyzePacing).toHaveBeenCalled();
-    expect(mockDetectFiller).toHaveBeenCalled();
-    // LLM 也应该已经调用
-    expect(mockEvaluateWithLLM).toHaveBeenCalled();
-
-    // 完成 LLM
-    resolveLLM!({
-      hookScore: 6,
-      cliffhangerScore: 6,
-      consistencyIssues: [],
-      highlights: [],
-      suggestions: [],
-    });
-
-    const result = await resultPromise;
-    expect(result.isPartial).toBe(false);
+    // Assert — LLM 收到的 prompt 应包含规则引擎信号
+    const [calledText, calledPrompt] = mockEvaluateWithLLM.mock.calls[0];
+    expect(calledText).toBe("测试文本");
+    expect(calledPrompt).toContain("【爽点分析信号】");
+    expect(calledPrompt).toContain("【节奏分析信号】");
+    expect(calledPrompt).toContain("【注水检测信号】");
+    expect(calledPrompt).toContain("碾压"); // keyword from climax
   });
 
-  it("should return partial results when LLM fails", async () => {
+  it("should run rule engines before LLM (sequential dependency)", async () => {
     // Arrange
-    mockAnalyzeClimax.mockReturnValue({ score: 7, matchedKeywords: [], dialogueDensity: 0, conflictDensity: 0 });
-    mockAnalyzePacing.mockReturnValue({ score: 6, curve: [] });
-    mockDetectFiller.mockReturnValue({ items: [] });
+    const callOrder: string[] = [];
+    mockAnalyzeClimax.mockImplementation(() => { callOrder.push("climax"); return MOCK_CLIMAX_RESULT; });
+    mockAnalyzePacing.mockImplementation(() => { callOrder.push("pacing"); return MOCK_PACING_RESULT; });
+    mockDetectFiller.mockImplementation(() => { callOrder.push("filler"); return MOCK_FILLER_RESULT; });
+    mockEvaluateWithLLM.mockImplementation(async () => {
+      callOrder.push("llm");
+      return {
+        hookScore: 5, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5,
+        consistencyIssues: [], highlights: [], suggestions: [],
+      };
+    });
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    // Act
+    await pipeline.evaluateChapter("测试文本");
+
+    // Assert — 规则引擎先于 LLM 执行
+    expect(callOrder).toEqual(["climax", "pacing", "filler", "llm"]);
+  });
+
+  it("should fallback to rule engine scores when LLM fails", async () => {
+    // Arrange
     mockEvaluateWithLLM.mockRejectedValue(new Error("API timeout"));
 
     const pipeline = createEvaluationPipeline({
@@ -120,12 +140,33 @@ describe("EvaluationPipeline", () => {
     // Act
     const result = await pipeline.evaluateChapter("测试文本");
 
-    // Assert
+    // Assert — 降级到规则引擎分数
     expect(result.isPartial).toBe(true);
-    expect(result.climaxResult.score).toBe(7);
-    expect(result.pacingResult.score).toBe(6);
     expect(result.llmResult).toBeNull();
-    expect(result.scores.climaxScore).toBe(7);
-    expect(result.scores.pacingScore).toBe(6);
+    expect(result.scores.climaxScore).toBe(8); // from rule engine
+    expect(result.scores.pacingScore).toBe(7); // from rule engine
+  });
+
+  it("should include rule engine results in output", async () => {
+    // Arrange
+    mockEvaluateWithLLM.mockResolvedValue({
+      hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
+      consistencyIssues: [], highlights: [], suggestions: [],
+    });
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    // Act
+    const result = await pipeline.evaluateChapter("测试文本");
+
+    // Assert — 原始规则引擎结果保留
+    expect(result.climaxResult).toBe(MOCK_CLIMAX_RESULT);
+    expect(result.pacingResult).toBe(MOCK_PACING_RESULT);
+    expect(result.fillerResult).toBe(MOCK_FILLER_RESULT);
   });
 });

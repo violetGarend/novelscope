@@ -4,8 +4,15 @@ export interface FillerItem {
   suggestion: string;
 }
 
+export interface SuspiciousPair {
+  paragraphA: number;
+  paragraphB: number;
+  similarity: number;
+}
+
 export interface FillerResult {
   items: FillerItem[];
+  suspiciousPairs: SuspiciousPair[];
 }
 
 function similarity(a: string, b: string): number {
@@ -33,16 +40,18 @@ function similarity(a: string, b: string): number {
 
 export function detectFiller(text: string): FillerResult {
   if (!text || text.trim().length === 0) {
-    return { items: [] };
+    return { items: [], suspiciousPairs: [] };
   }
 
   const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length < 2) {
-    return { items: [] };
+    return { items: [], suspiciousPairs: [] };
   }
 
   const items: FillerItem[] = [];
+  const suspiciousPairs: SuspiciousPair[] = [];
   const SIMILARITY_THRESHOLD = 0.7;
+  const SUSPICIOUS_THRESHOLD = 0.4;
 
   for (let i = 0; i < paragraphs.length; i++) {
     for (let j = i + 1; j < paragraphs.length; j++) {
@@ -53,10 +62,22 @@ export function detectFiller(text: string): FillerResult {
           reason: `第${i + 1}段与第${j + 1}段内容高度相似（${Math.round(sim * 100)}%）`,
           suggestion: "建议合并或删除重复段落，避免注水嫌疑",
         });
+        suspiciousPairs.push({
+          paragraphA: i + 1,
+          paragraphB: j + 1,
+          similarity: Math.round(sim * 100) / 100,
+        });
         break; // One report per paragraph is enough
+      }
+      if (sim >= SUSPICIOUS_THRESHOLD) {
+        suspiciousPairs.push({
+          paragraphA: i + 1,
+          paragraphB: j + 1,
+          similarity: Math.round(sim * 100) / 100,
+        });
       }
     }
   }
 
-  return { items };
+  return { items, suspiciousPairs };
 }

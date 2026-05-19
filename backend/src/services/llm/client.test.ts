@@ -25,7 +25,9 @@ describe("LLMClient", () => {
   it("should call API with temperature=0", async () => {
     const validResponse: LLMResult = {
       hookScore: 8,
+      climaxScore: 7,
       cliffhangerScore: 7,
+      pacingScore: 6,
       consistencyIssues: [],
       highlights: ["开头好"],
       suggestions: [],
@@ -54,7 +56,9 @@ describe("LLMClient", () => {
   it("should strip markdown fences before parsing JSON", async () => {
     const validResponse: LLMResult = {
       hookScore: 8,
+      climaxScore: 7,
       cliffhangerScore: 7,
+      pacingScore: 6,
       consistencyIssues: [],
       highlights: [],
       suggestions: [],
@@ -80,7 +84,9 @@ describe("LLMClient", () => {
   it("should retry on timeout", async () => {
     const validResponse: LLMResult = {
       hookScore: 5,
+      climaxScore: 5,
       cliffhangerScore: 5,
+      pacingScore: 5,
       consistencyIssues: [],
       highlights: [],
       suggestions: [],
@@ -109,7 +115,9 @@ describe("LLMClient", () => {
   it("should retry on 429 rate limit error", async () => {
     const validResponse: LLMResult = {
       hookScore: 6,
+      climaxScore: 6,
       cliffhangerScore: 6,
+      pacingScore: 6,
       consistencyIssues: [],
       highlights: [],
       suggestions: [],

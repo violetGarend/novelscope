@@ -120,16 +120,14 @@ Next.js App (Vercel)
 ├── API Routes
 │   ├── /api/evaluate (评估入口)
 │   │   ├── 输入校验 (null/empty/length/language)
-│   │   ├── 并行执行 (Promise.all)
-│   │   │   ├── 规则引擎（本地）
-│   │   │   │   ├── 爽点密度（关键词匹配 + 对话密度）
-│   │   │   │   ├── 节奏分析（段落长度/对话比例）
-│   │   │   │   └── 注水检测（字符串相似度）
-│   │   │   └── LLM 评估（DeepSeek API 直接调用）
-│   │   │       ├── Hook 强度评估
-│   │   │       ├── 章末悬念评估
-│   │   │       └── 一致性检查
-│   │   ├── 结果合并 + 部分评估处理
+│   │   ├── 阶段 1: 规则引擎信号提取（本地）
+│   │   │   ├── 爽点密度 → keywordCategories, matchedKeywords, dialogueDensity
+│   │   │   ├── 节奏分析 → cv, typeRatio, curve
+│   │   │   └── 注水检测 → suspiciousPairs, items
+│   │   ├── 阶段 2: 信号注入 LLM prompt 构建
+│   │   ├── 阶段 3: LLM 评估（DeepSeek API，输出全部 4 维分数）
+│   │   ├── 阶段 4: Guard（clamp + 加权综合分）
+│   │   ├── 降级: LLM 失败 → 使用规则引擎参考分数
 │   │   └── 数据库存储 (EvaluationReport)
 │   └── 用户/章节/报告 CRUD
 └── Prisma ORM → PostgreSQL (Supabase, pgbouncer)
@@ -142,7 +140,7 @@ DeepSeek API (openai npm 包, temperature=0)
 
 Phase 2 如果需要重 NLP（spaCy、sentence-transformers），可引入 Python 微服务。Phase 0 不需要。
 
-**通信方式：** Next.js API Routes 是唯一的后端。规则引擎和 LLM 评估都在 Next.js 中执行，通过 `Promise.all` 并行调用。DeepSeek API 通过 `openai` npm 包直接调用（DeepSeek 兼容 OpenAI API）。结果合并后返回给用户。
+**通信方式：** Next.js API Routes 是唯一的后端。规则引擎先执行提取结构化信号，信号注入 LLM prompt 后由 LLM 进行最终评分。DeepSeek API 通过 `openai` npm 包直接调用（DeepSeek 兼容 OpenAI API）。LLM 失败时降级到规则引擎参考分数。
 
 **设计系统：** 所有 UI 实现必须遵循 `DESIGN.md` 中定义的字体、色彩、间距和美学方向。
 
@@ -291,10 +289,10 @@ Response:
 
 | 指标 | 评分范围 | 计算方式 | 权重 |
 |------|----------|----------|------|
-| Hook强度 | 0-10 | LLM评估：首段是否抓人、是否有悬念、是否引发好奇 | 30% |
-| 爽点密度 | 0-10 | 规则引擎：情绪关键词匹配 + 对话密度 + 冲突事件计数 / 千字 | 30% |
-| 章末悬念 | 0-10 | LLM评估：章末是否有未解决的冲突、是否有翻页冲动 | 25% |
-| 节奏得分 | 0-10 | 规则引擎：动作/对话/描写比例、段落长度变异系数 | 15% |
+| Hook强度 | 0-10 | LLM 评估：首段是否抓人、是否有悬念、是否引发好奇 | 30% |
+| 爽点密度 | 0-10 | LLM 基于规则引擎信号评分：关键词命中分类、对话密度、冲突密度 | 30% |
+| 章末悬念 | 0-10 | LLM 评估：章末是否有未解决的冲突、是否有翻页冲动 | 25% |
+| 节奏得分 | 0-10 | LLM 基于规则引擎信号评分：CV、动作/对话/描写比例、张力曲线 | 15% |
 
 **综合追读力 = Hook×0.3 + 爽点×0.3 + 悬念×0.25 + 节奏×0.15**
 
@@ -312,19 +310,26 @@ Response:
 
 **部分评估处理：**
 
-当 LLM 调用失败时，综合追读力分数标记为 null（不计算），只返回规则引擎部分结果（爽点密度、节奏得分）。用户看到"部分评估"提示，知道这是不完整的评估。
+当 LLM 调用失败时，标记 `isPartial: true`，使用规则引擎的参考分数作为 fallback（climaxScore 和 pacingScore 来自规则引擎，hookScore 和 cliffhangerScore 为 0）。用户看到"部分评估"提示，知道这是降级评估。
 
-### 评估管线（规则+LLM混合方案）
+### 评估管线（信号注入架构）
 
-| 子评估 | 实现方式 | 理由 |
-|--------|----------|------|
-| Hook强度 | LLM | 需要理解语义和叙事技巧，规则引擎无法判断 |
-| 爽点密度 | 规则引擎为主 | 情绪关键词匹配（Phase 0: 最小可用词典 50-100 个核心关键词，覆盖逆袭/震惊/突破/打脸/碾压/觉醒等类别；Phase 1+: 扩充到 200+）+ 对话密度 + 冲突事件计数。Phase 0 不做置信度升级机制，Phase 1 再引入。 |
-| 章末悬念 | LLM | 需要判断叙事张力和未解决冲突，规则引擎无法判断 |
-| 节奏分析 | 规则引擎 | 动作/对话/描写比例 + 段落长度变异系数，纯文本分析 |
-| 一致性检查 | LLM + 角色档案上下文 | 将角色档案和设定约束注入system prompt，让LLM对照检查 |
-| 角色提取 | LLM | 从文本中识别人物、关系、特征，需要语义理解 |
-| 注水检测 | 规则引擎 | 段落相似度计算（余弦相似度）、重复句式检测 |
+架构采用"规则引擎作为信号提取器，LLM 做最终评分"的模式：
+
+```
+规则引擎 → 结构化信号 ──→ 注入LLM prompt → LLM出全部4个分 → guard → overallScore
+```
+
+| 子评估 | 信号来源 | LLM 角色 | 理由 |
+|--------|----------|----------|------|
+| Hook强度 | 无规则信号 | LLM 独立评分 | 需要理解语义和叙事技巧，规则引擎无法判断 |
+| 爽点密度 | ClimaxAnalyzer → keywordCategories, dialogueDensity, conflictDensity | LLM 基于信号评分 | 规则引擎提供关键词命中等信号，LLM 理解语义上下文后给出更准确的分数 |
+| 章末悬念 | 无规则信号 | LLM 独立评分 | 需要判断叙事张力和未解决冲突，规则引擎无法判断 |
+| 节奏分析 | PacingAnalyzer → cv, typeRatio, curve | LLM 基于信号评分 | 规则引擎提供段落分类和变异系数，LLM 综合判断节奏质量 |
+| 一致性检查 | 无规则信号 | LLM + 角色档案上下文 | 将角色档案和设定约束注入system prompt，让LLM对照检查 |
+| 注水检测 | FillerDetector → suspiciousPairs, items | LLM 参考信号判断 | 规则引擎提供相似度数据，LLM 判断是否为有意重复 |
+
+**信号格式化：** 规则引擎输出的结构化数据通过 Prompt 构建模块（`services/prompt/`）格式化为中文提示，注入 LLM 的 system prompt。调整评估逻辑只需改 prompt，不改规则引擎代码。
 
 ### 记忆管理（极简版）
 
@@ -429,8 +434,8 @@ Response:
 - [ ] DeepSeek API 对接（openai npm 包）+ 结构化输出 prompt 初版设计（5天，含 prompt 迭代）
   - Zod schema 验证 LLM 输出
   - markdown fence 剥离 + JSON.parse try-catch + 重试 1 次
-- [ ] 追读力评估管线：Hook(LLM) + 爽点(规则) + 悬念(LLM) + 节奏(规则)（5天）
-  - 规则引擎和 LLM 评估都在 Next.js API Routes 中执行，通过 Promise.all 并行调用
+- [ ] 追读力评估管线：信号注入架构（5天）
+  - 规则引擎提取结构化信号 → 信号注入 LLM prompt → LLM 输出全部 4 维分数
   - Phase 0 一致性检查仅限通用逻辑矛盾检测（不依赖角色档案），Phase 2 才启用基于记忆的深度一致性检查
   - Phase 0 爽点密度用最小可用词典（50-100个关键词，JSON 文件 + 内存缓存），不做置信度升级
 - [ ] LLM 一致性保障：temperature=0 + 分数钳制 + 方差预算（1天）

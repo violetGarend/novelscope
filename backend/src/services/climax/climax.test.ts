@@ -43,4 +43,33 @@ describe("ClimaxAnalyzer", () => {
     expect(result.score).toBeGreaterThanOrEqual(0);
     expect(result.score).toBeLessThanOrEqual(10);
   });
+
+  it("should expose keywordCategories grouped by category", () => {
+    const text =
+      "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。" +
+      "这一战，他彻底翻身逆袭，从此踏上巅峰之路。热血沸腾的战斗，让所有人都震撼不已。";
+    const result = analyzeClimax(text);
+    expect(result.keywordCategories).toBeDefined();
+    expect(result.keywordCategories).toHaveProperty("reversal");
+    expect(result.keywordCategories).toHaveProperty("shock");
+    expect(result.keywordCategories).toHaveProperty("breakthrough");
+    expect(result.keywordCategories).toHaveProperty("conflict");
+    expect(result.keywordCategories).toHaveProperty("emotion");
+    // "碾压" and "逆袭" are in reversal
+    expect(result.keywordCategories.reversal).toContain("碾压");
+    expect(result.keywordCategories.reversal).toContain("逆袭");
+    // "目瞪口呆" and "震撼" are in shock
+    expect(result.keywordCategories.shock).toContain("目瞪口呆");
+    expect(result.keywordCategories.shock).toContain("震撼");
+  });
+
+  it("should return empty arrays for categories with no matches", () => {
+    const text = "他走在路上，心情很好。今天天气不错。阳光明媚。微风习习。";
+    const result = analyzeClimax(text);
+    expect(result.keywordCategories.reversal).toEqual([]);
+    expect(result.keywordCategories.shock).toEqual([]);
+    expect(result.keywordCategories.breakthrough).toEqual([]);
+    expect(result.keywordCategories.conflict).toEqual([]);
+    expect(result.keywordCategories.emotion).toEqual([]);
+  });
 });

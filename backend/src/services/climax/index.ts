@@ -1,6 +1,7 @@
 export interface ClimaxResult {
   score: number;
   matchedKeywords: string[];
+  keywordCategories: Record<string, string[]>;
   dialogueDensity: number;
   conflictDensity: number;
 }
@@ -45,6 +46,14 @@ function matchKeywords(text: string): string[] {
   return matched;
 }
 
+function matchKeywordsByCategory(text: string): Record<string, string[]> {
+  const result: Record<string, string[]> = {};
+  for (const [category, keywords] of Object.entries(KEYWORD_DICT)) {
+    result[category] = keywords.filter((kw) => text.includes(kw));
+  }
+  return result;
+}
+
 function countDialogueLines(text: string): number {
   const lines = text.split(/[\n\r]+/);
   return lines.filter((line) => /[「」""''「」]/.test(line) || /^[""]/.test(line.trim())).length;
@@ -56,11 +65,12 @@ function getConflictKeywords(): string[] {
 
 export function analyzeClimax(text: string): ClimaxResult {
   if (!text || text.trim().length === 0) {
-    return { score: 0, matchedKeywords: [], dialogueDensity: 0, conflictDensity: 0 };
+    return { score: 0, matchedKeywords: [], keywordCategories: { reversal: [], shock: [], breakthrough: [], conflict: [], emotion: [] }, dialogueDensity: 0, conflictDensity: 0 };
   }
 
   const charCount = text.length;
   const matchedKeywords = matchKeywords(text);
+  const keywordCategories = matchKeywordsByCategory(text);
   const dialogueLines = countDialogueLines(text);
   const totalLines = text.split(/[\n\r]+/).filter((l) => l.trim().length > 0).length;
   const dialogueDensity = totalLines > 0 ? dialogueLines / totalLines : 0;
@@ -85,6 +95,7 @@ export function analyzeClimax(text: string): ClimaxResult {
   return {
     score,
     matchedKeywords,
+    keywordCategories,
     dialogueDensity: Math.round(dialogueDensity * 100) / 100,
     conflictDensity: Math.round(conflictDensity * 100) / 100,
   };

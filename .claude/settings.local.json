@@ -7,5 +7,19 @@
       "Bash(npx vitest *)",
       "Bash(npx prisma generate *)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "检测到 git commit 完成。请执行以下步骤：1) 检查最近的 git log 确定完成的 issue 编号；2) 读取 CLAUDE.md 并更新开发进度部分，添加新完成的 issue 记录；3) 读取对应的 docs/issues/XXX-*.md 文件，将 Acceptance criteria 中的 `- [ ]` 全部改为 `- [x]`。可以修改 CLAUDE.md 和 docs/issues/ 下的文件。",
+            "if": "Bash(git commit *)"
+          }
+        ]
+      }
+    ]
   }
 }
