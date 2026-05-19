@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NovelScope Backend
 
-## Getting Started
+NovelScope（小说望远镜）后端服务 — AI 写作质量评估引擎。
 
-First, run the development server:
+## 技术栈
+
+- Node.js + Express
+- Prisma ORM + PostgreSQL
+- DeepSeek API（LLM 评估）
+- Jest（测试框架）
+
+## 快速启动
 
 ```bash
+npm install
+# 复制环境变量文件并配置
+cp .env.example .env   # 填写 DEEPSEEK_API_KEY 和 DATABASE_URL
+# 数据库迁移
+npx prisma migrate dev
+# 启动开发服务器（端口 3001）
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API 端点
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/evaluate` | POST | 标准评估 |
+| `/api/evaluate/stream` | POST | SSE 流式评估（7 步进度推送） |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 测试
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+# 当前: 91 tests, 14 suites
+```

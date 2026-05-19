@@ -10,8 +10,11 @@
 | 6 | [POST /api/evaluate 端点 + 基础 UI](006-evaluate-api-basic-ui.md) | AFK | #5 | ✅ 完成 |
 | 7 | [7 步进度条](007-progress-bar.md) | AFK | #6 | ✅ 完成 |
 | 8 | [完整报告展示](008-report-display.md) | AFK | #6 | ✅ 完成 |
-| 9 | [节奏曲线 SVG + 评估历史](009-pacing-curve-history.md) | AFK | #6 | 待开始 |
+| 9 | [节奏曲线 SVG + 评估历史](009-pacing-curve-history.md) | AFK | #6 | ✅ 完成 |
 | 10 | [信号注入架构重构](010-signal-injection-architecture.md) | AFK | #5, #6 | ✅ 完成 |
+| 11 | [Token 用量 + 成本追踪](011-token-cost-tracking.md) | AFK | — | 待开始 |
+| 12 | [Golden Sample 验证](012-golden-sample-validation.md) | AFK | — | 待开始 |
+| 13 | [LLM 进度条细化 + 超时](013-llm-progress-timeout.md) | AFK | #12 | 待开始 |
 
 **并行路径：**
 ```
@@ -20,6 +23,11 @@
 ├── #3 节奏注水 ──┼── #5 评估管线 ── #6 API+UI ──┬── #7 进度条
 └── #4 LLM Client┘                   │           ├── #8 报告展示
                                       └── #10 信号注入重构  └── #9 曲线+历史
+
+LLM 启用阶段（新增）:
+#11 成本追踪 ──┐
+               ├── #13 进度条细化+超时
+#12 Golden Sample┘
 ```
 
-**当前进度：** 126 个测试通过，#1-#8 + #10 已完成
+**当前进度：** 144 个测试通过（后端 91 + 前端 53），#1-#10 全部完成。#11-#13 为 LLM 启用阶段。

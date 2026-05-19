@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NovelScope Frontend
 
-## Getting Started
+NovelScope（小说望远镜）前端 — AI 写作质量评估 SaaS 界面。
 
-First, run the development server:
+## 技术栈
+
+- Next.js 16 + TypeScript
+- Tailwind CSS（DESIGN.md 设计系统）
+- Vitest + React Testing Library（测试）
+
+## 快速启动
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 打开 http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+后端服务需在端口 3001 运行，或设置 `NEXT_PUBLIC_API_URL` 环境变量。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 核心组件
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 组件 | 说明 |
+|------|------|
+| `EvaluatePage` | 评估主页面：输入框 + 进度条 + 报告卡片 + 历史列表 |
+| `ProgressBar` | 7 步 SSR 进度条，含骨架屏加载态 |
+| `ReportCard` | 完整报告：综合评分 + 子评分 + 亮点建议 + 一致性检查 |
+| `ScoreBadge` | 颜色编码评分徽章（绿/黄/红） |
+| `PacingCurve` | 纯 SVG 节奏曲线面积图（无第三方库） |
+| `EvaluationHistory` | localStorage 评估历史列表（最近 10 条） |
 
-## Learn More
+## 测试
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+# 当前: 53 tests, 6 suites
+```
