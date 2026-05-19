@@ -4,12 +4,20 @@ import type { ClimaxResult } from "../climax";
 import type { PacingResult } from "../pacing";
 import type { FillerResult } from "../filler";
 import type { LLMResult } from "../llm";
+import type { LLMCallResult } from "../llm/client";
 
 // Mock dependencies
 const mockAnalyzeClimax = jest.fn<(text: string) => ClimaxResult>();
 const mockAnalyzePacing = jest.fn<(text: string) => PacingResult>();
 const mockDetectFiller = jest.fn<(text: string) => FillerResult>();
-const mockEvaluateWithLLM = jest.fn<(text: string, prompt: string) => Promise<LLMResult>>();
+const mockEvaluateWithLLM = jest.fn<(text: string, prompt: string) => Promise<LLMCallResult>>();
+
+function wrapLLMResult(result: LLMResult, usage?: { promptTokens: number; completionTokens: number }): LLMCallResult {
+  return {
+    result,
+    usage: usage ?? { promptTokens: 150, completionTokens: 80 },
+  };
+}
 
 const MOCK_CLIMAX_RESULT: ClimaxResult = {
   score: 8,
@@ -38,7 +46,7 @@ describe("EvaluationPipeline", () => {
 
   it("should use LLM scores when LLM succeeds (signal injection architecture)", async () => {
     // Arrange — LLM 出全部 4 个分数
-    mockEvaluateWithLLM.mockResolvedValue({
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
       hookScore: 9,
       climaxScore: 8,
       cliffhangerScore: 8,
@@ -46,7 +54,7 @@ describe("EvaluationPipeline", () => {
       consistencyIssues: [],
       highlights: ["开头引人入胜"],
       suggestions: [],
-    });
+    }));
 
     const pipeline = createEvaluationPipeline({
       analyzeClimax: mockAnalyzeClimax,
@@ -69,7 +77,7 @@ describe("EvaluationPipeline", () => {
 
   it("should pass signal-informed prompt to LLM", async () => {
     // Arrange
-    mockEvaluateWithLLM.mockResolvedValue({
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
       hookScore: 5,
       climaxScore: 5,
       cliffhangerScore: 5,
@@ -77,7 +85,7 @@ describe("EvaluationPipeline", () => {
       consistencyIssues: [],
       highlights: [],
       suggestions: [],
-    });
+    }));
 
     const pipeline = createEvaluationPipeline({
       analyzeClimax: mockAnalyzeClimax,
@@ -106,10 +114,10 @@ describe("EvaluationPipeline", () => {
     mockDetectFiller.mockImplementation(() => { callOrder.push("filler"); return MOCK_FILLER_RESULT; });
     mockEvaluateWithLLM.mockImplementation(async () => {
       callOrder.push("llm");
-      return {
+      return wrapLLMResult({
         hookScore: 5, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5,
         consistencyIssues: [], highlights: [], suggestions: [],
-      };
+      });
     });
 
     const pipeline = createEvaluationPipeline({
@@ -149,10 +157,10 @@ describe("EvaluationPipeline", () => {
 
   describe("onProgress callback", () => {
     it("should call onProgress for all 7 steps in correct order", async () => {
-      mockEvaluateWithLLM.mockResolvedValue({
+      mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
         hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
         consistencyIssues: [], highlights: [], suggestions: [],
-      });
+      }));
 
       const progressCalls: { step: number; stepName: string }[] = [];
       const pipeline = createEvaluationPipeline(
@@ -207,10 +215,10 @@ describe("EvaluationPipeline", () => {
     });
 
     it("should not throw when onProgress is not provided (backward compatibility)", async () => {
-      mockEvaluateWithLLM.mockResolvedValue({
+      mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
         hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
         consistencyIssues: [], highlights: [], suggestions: [],
-      });
+      }));
 
       const pipeline = createEvaluationPipeline({
         analyzeClimax: mockAnalyzeClimax,
@@ -225,10 +233,10 @@ describe("EvaluationPipeline", () => {
 
   it("should include rule engine results in output", async () => {
     // Arrange
-    mockEvaluateWithLLM.mockResolvedValue({
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
       hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
       consistencyIssues: [], highlights: [], suggestions: [],
-    });
+    }));
 
     const pipeline = createEvaluationPipeline({
       analyzeClimax: mockAnalyzeClimax,
@@ -244,5 +252,38 @@ describe("EvaluationPipeline", () => {
     expect(result.climaxResult).toBe(MOCK_CLIMAX_RESULT);
     expect(result.pacingResult).toBe(MOCK_PACING_RESULT);
     expect(result.fillerResult).toBe(MOCK_FILLER_RESULT);
+  });
+
+  it("should include token usage when LLM succeeds", async () => {
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult(
+      { hookScore: 8, climaxScore: 7, cliffhangerScore: 6, pacingScore: 6, consistencyIssues: [], highlights: [], suggestions: [] },
+      { promptTokens: 1200, completionTokens: 350 }
+    ));
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    const result = await pipeline.evaluateChapter("测试文本");
+
+    expect(result.tokenUsage).toEqual({ promptTokens: 1200, completionTokens: 350 });
+  });
+
+  it("should return null token usage when LLM fails", async () => {
+    mockEvaluateWithLLM.mockRejectedValue(new Error("API timeout"));
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    const result = await pipeline.evaluateChapter("测试文本");
+
+    expect(result.tokenUsage).toBeNull();
   });
 });

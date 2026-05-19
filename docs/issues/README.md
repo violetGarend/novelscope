@@ -12,7 +12,7 @@
 | 8 | [完整报告展示](008-report-display.md) | AFK | #6 | ✅ 完成 |
 | 9 | [节奏曲线 SVG + 评估历史](009-pacing-curve-history.md) | AFK | #6 | ✅ 完成 |
 | 10 | [信号注入架构重构](010-signal-injection-architecture.md) | AFK | #5, #6 | ✅ 完成 |
-| 11 | [Token 用量 + 成本追踪](011-token-cost-tracking.md) | AFK | — | 待开始 |
+| 11 | [Token 用量 + 成本追踪](011-token-cost-tracking.md) | AFK | — | ✅ 完成 |
 | 12 | [Golden Sample 验证](012-golden-sample-validation.md) | AFK | — | 待开始 |
 | 13 | [LLM 进度条细化 + 超时](013-llm-progress-timeout.md) | AFK | #12 | 待开始 |
 
@@ -30,4 +30,4 @@ LLM 启用阶段（新增）:
 #12 Golden Sample┘
 ```
 
-**当前进度：** 144 个测试通过（后端 91 + 前端 53），#1-#10 全部完成。#11-#13 为 LLM 启用阶段。
+**当前进度：** 154 个测试通过（后端 98 + 前端 56），#1-#11 全部完成。#12-#13 为 LLM 启用阶段待完成。

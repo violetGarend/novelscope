@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { createLLMClient, LLMClientError } from "./client";
+import type { LLMCallResult } from "./client";
 import type { LLMResult } from "./schema";
 
 // Mock OpenAI
@@ -41,6 +42,7 @@ describe("LLMClient", () => {
           },
         },
       ],
+      usage: { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 },
     });
 
     const client = createLLMClient({ apiKey: "test-key" });
@@ -73,10 +75,11 @@ describe("LLMClient", () => {
           },
         },
       ],
+      usage: { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 },
     });
 
     const client = createLLMClient({ apiKey: "test-key" });
-    const result = await client.evaluateWithLLM("测试文本", "测试prompt");
+    const { result } = await client.evaluateWithLLM("测试文本", "测试prompt");
 
     expect(result.hookScore).toBe(8);
   });
@@ -103,10 +106,11 @@ describe("LLMClient", () => {
             },
           },
         ],
+        usage: { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 },
       });
 
     const client = createLLMClient({ apiKey: "test-key" });
-    const result = await client.evaluateWithLLM("测试文本", "测试prompt");
+    const { result } = await client.evaluateWithLLM("测试文本", "测试prompt");
 
     expect(mockCreate).toHaveBeenCalledTimes(2);
     expect(result.hookScore).toBe(5);
@@ -136,10 +140,11 @@ describe("LLMClient", () => {
             },
           },
         ],
+        usage: { prompt_tokens: 150, completion_tokens: 80, total_tokens: 230 },
       });
 
     const client = createLLMClient({ apiKey: "test-key" });
-    const result = await client.evaluateWithLLM("测试文本", "测试prompt");
+    const { result } = await client.evaluateWithLLM("测试文本", "测试prompt");
 
     expect(mockCreate).toHaveBeenCalledTimes(2);
     expect(result.hookScore).toBe(6);
@@ -212,5 +217,38 @@ describe("LLMClient", () => {
         baseURL: expect.stringContaining("deepseek"),
       })
     );
+  });
+
+  it("should extract and return token usage from API response", async () => {
+    const validResponse: LLMResult = {
+      hookScore: 7,
+      climaxScore: 7,
+      cliffhangerScore: 7,
+      pacingScore: 7,
+      consistencyIssues: [],
+      highlights: [],
+      suggestions: [],
+    };
+
+    mockCreate.mockResolvedValueOnce({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify(validResponse),
+          },
+        },
+      ],
+      usage: { prompt_tokens: 1200, completion_tokens: 350, total_tokens: 1550 },
+    });
+
+    const client = createLLMClient({ apiKey: "test-key" });
+    const callResult = await client.evaluateWithLLM("测试文本", "测试prompt");
+
+    expect(callResult.result).toBeDefined();
+    expect(callResult.result.hookScore).toBe(7);
+    expect(callResult.usage).toEqual({
+      promptTokens: 1200,
+      completionTokens: 350,
+    });
   });
 });

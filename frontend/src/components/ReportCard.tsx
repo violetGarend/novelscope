@@ -37,6 +37,8 @@ export interface EvaluationReport {
     suggestions: string[];
   } | null;
   isPartial: boolean;
+  tokenUsage?: { promptTokens: number; completionTokens: number } | null;
+  costEstimate?: number | null;
 }
 
 function scoreColor(score: number): string {
@@ -178,6 +180,20 @@ export function ReportCard({ report }: { report: EvaluationReport }) {
             ))}
           </ul>
         </>
+      )}
+
+      {/* Token Usage + Cost — 小字，不干扰主报告视觉层级 */}
+      {report.tokenUsage && (
+        <div className="mt-10 pt-4 border-t border-border text-xs text-text-muted font-mono">
+          <span>
+            Token 用量：输入 {report.tokenUsage.promptTokens.toLocaleString()} + 输出 {report.tokenUsage.completionTokens.toLocaleString()}
+          </span>
+          {report.costEstimate != null && (
+            <span className="ml-4">
+              预估成本：¥{report.costEstimate.toFixed(4)}
+            </span>
+          )}
+        </div>
       )}
     </div>
   );

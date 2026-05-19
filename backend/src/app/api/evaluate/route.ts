@@ -5,6 +5,8 @@ import { analyzeClimax } from "@/services/climax";
 import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
 import { createLLMClient } from "@/services/llm";
+import type { LLMCallResult } from "@/services/llm";
+import { calculateCost } from "@/lib/cost";
 import { CORS_HEADERS } from "@/lib/cors";
 
 export async function OPTIONS() {
@@ -15,18 +17,21 @@ const pipeline = createEvaluationPipeline({
   analyzeClimax,
   analyzePacing,
   detectFiller,
-  evaluateWithLLM: async (chapterText: string, prompt: string) => {
+  evaluateWithLLM: async (chapterText: string, prompt: string): Promise<LLMCallResult> => {
     // P0 阶段：如果没有 API key，返回 mock 数据
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
       return {
-        hookScore: 5,
-        climaxScore: 5,
-        cliffhangerScore: 5,
-        pacingScore: 5,
-        consistencyIssues: [],
-        highlights: ["（P0 阶段：LLM 评估未启用）"],
-        suggestions: ["建议配置 DEEPSEEK_API_KEY 以启用完整评估"],
+        result: {
+          hookScore: 5,
+          climaxScore: 5,
+          cliffhangerScore: 5,
+          pacingScore: 5,
+          consistencyIssues: [],
+          highlights: ["（P0 阶段：LLM 评估未启用）"],
+          suggestions: ["建议配置 DEEPSEEK_API_KEY 以启用完整评估"],
+        },
+        usage: { promptTokens: 0, completionTokens: 0 },
       };
     }
     const client = createLLMClient({ apiKey });
@@ -49,6 +54,11 @@ export async function POST(request: Request) {
 
     const result = await pipeline.evaluateChapter(chapterText);
 
+    const tokenUsage = result.tokenUsage && result.tokenUsage.promptTokens > 0
+      ? result.tokenUsage
+      : null;
+    const costEstimate = tokenUsage ? calculateCost(tokenUsage) : null;
+
     return NextResponse.json({
       reportId: `report_${Date.now()}`,
       scores: result.scores,
@@ -57,8 +67,8 @@ export async function POST(request: Request) {
       fillerResult: result.fillerResult,
       llmResult: result.llmResult,
       isPartial: result.isPartial,
-      tokenUsage: null,
-      costEstimate: null,
+      tokenUsage,
+      costEstimate,
     }, { headers: CORS_HEADERS });
   } catch (error) {
     return NextResponse.json(

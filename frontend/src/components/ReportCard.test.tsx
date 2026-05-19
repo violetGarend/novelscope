@@ -44,6 +44,8 @@ const FULL_REPORT: EvaluationReport = {
     suggestions: ["中间段落的对话节奏可以更紧凑，适当减少重复信息"],
   },
   isPartial: false,
+  tokenUsage: { promptTokens: 1200, completionTokens: 350 },
+  costEstimate: 0.0019,
 };
 
 describe("ReportCard — full report", () => {
@@ -119,6 +121,27 @@ describe("ReportCard — full report", () => {
     // 不应出现考试式语气
     expect(screen.queryByText("问题")).toBeNull();
     expect(screen.queryByText("不合格")).toBeNull();
+  });
+
+  it("should display token usage and cost at the bottom", () => {
+    render(<ReportCard report={FULL_REPORT} />);
+    expect(screen.getByText(/Token 用量：/)).toBeInTheDocument();
+    expect(screen.getByText(/输入 1,200/)).toBeInTheDocument();
+    expect(screen.getByText(/输出 350/)).toBeInTheDocument();
+    expect(screen.getByText(/预估成本：¥0\.0019/)).toBeInTheDocument();
+  });
+
+  it("should not show token section when tokenUsage is null", () => {
+    const noTokenReport = { ...FULL_REPORT, tokenUsage: null, costEstimate: null };
+    render(<ReportCard report={noTokenReport} />);
+    expect(screen.queryByText(/Token 用量/)).toBeNull();
+    expect(screen.queryByText(/预估成本/)).toBeNull();
+  });
+
+  it("should not show token section when tokenUsage is undefined", () => {
+    const noTokenReport = { ...FULL_REPORT, tokenUsage: undefined, costEstimate: undefined };
+    render(<ReportCard report={noTokenReport} />);
+    expect(screen.queryByText(/Token 用量/)).toBeNull();
   });
 });
 

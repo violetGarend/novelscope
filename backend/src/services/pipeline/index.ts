@@ -2,6 +2,7 @@ import type { ClimaxResult } from "../climax";
 import type { PacingResult } from "../pacing";
 import type { FillerResult } from "../filler";
 import type { LLMResult } from "../llm";
+import type { LLMCallResult, TokenUsage } from "../llm/client";
 import { guardScores, type ValidatedScores } from "../guard";
 import { buildEvaluationPrompt, type SignalData } from "../prompt";
 
@@ -12,6 +13,7 @@ export interface EvaluationResult {
   llmResult: LLMResult | null;
   scores: ValidatedScores;
   isPartial: boolean;
+  tokenUsage: TokenUsage | null;
 }
 
 export interface ProgressEvent {
@@ -27,7 +29,7 @@ export interface PipelineDependencies {
   analyzeClimax: (text: string) => ClimaxResult;
   analyzePacing: (text: string) => PacingResult;
   detectFiller: (text: string) => FillerResult;
-  evaluateWithLLM: (text: string, prompt: string) => Promise<LLMResult>;
+  evaluateWithLLM: (text: string, prompt: string) => Promise<LLMCallResult>;
 }
 
 export interface EvaluationPipeline {
@@ -67,12 +69,13 @@ export function createEvaluationPipeline(
       notify?.({ step: 5, stepName: "评估章末悬念" });
 
       // 阶段 3：调用 LLM 进行评估
-      const llmResult = await deps.evaluateWithLLM(text, prompt).catch(() => null);
+      const llmCallResult = await deps.evaluateWithLLM(text, prompt).catch(() => null);
 
       // 步骤 6：检查一致性
       notify?.({ step: 6, stepName: "检查一致性" });
 
-      const isPartial = llmResult === null;
+      const isPartial = llmCallResult === null;
+      const llmResult = llmCallResult?.result ?? null;
 
       // 阶段 4：构建分数 — LLM 分数为主，规则引擎分数为降级方案
       const rawScores = {
@@ -94,6 +97,7 @@ export function createEvaluationPipeline(
         llmResult,
         scores,
         isPartial,
+        tokenUsage: llmCallResult?.usage ?? null,
       };
     },
   };

@@ -18,8 +18,18 @@ export interface LLMClientConfig {
   maxRetries?: number;
 }
 
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+}
+
+export interface LLMCallResult {
+  result: LLMResult;
+  usage: TokenUsage;
+}
+
 export interface LLMClient {
-  evaluateWithLLM(text: string, prompt: string): Promise<LLMResult>;
+  evaluateWithLLM(text: string, prompt: string): Promise<LLMCallResult>;
 }
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com/v1";
@@ -84,7 +94,7 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
   const maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
 
   return {
-    async evaluateWithLLM(text: string, prompt: string): Promise<LLMResult> {
+    async evaluateWithLLM(text: string, prompt: string): Promise<LLMCallResult> {
       let lastError: Error | undefined;
 
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -106,7 +116,14 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
             );
           }
 
-          return parseAndValidateLLMResponse(content);
+          const result = parseAndValidateLLMResponse(content);
+          return {
+            result,
+            usage: {
+              promptTokens: response.usage?.prompt_tokens ?? 0,
+              completionTokens: response.usage?.completion_tokens ?? 0,
+            },
+          };
         } catch (error) {
           lastError = error instanceof Error ? error : new Error(String(error));
 

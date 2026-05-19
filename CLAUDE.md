@@ -36,7 +36,7 @@ CEO审查报告: `NovelScope-CEO审查报告.md`
 
 ## 开发模式
 
-单人+AI辅助开发。当前处于 Phase 0（验证期），Issue #1-#10 全部已完成（Prisma Schema + 规则引擎 + DeepSeek LLM Client + 一致性保障管线 + 评估API端点 + 信号注入架构重构 + SSE 进度条 + 完整报告展示 + 节奏曲线SVG + 评估历史），共 144 个测试通过（后端 91 + 前端 53）。参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
+单人+AI辅助开发。当前处于 Phase 0（验证期），Issue #1-#11 全部已完成（Prisma Schema + 规则引擎 + DeepSeek LLM Client + 一致性保障管线 + 评估API端点 + 信号注入架构重构 + SSE 进度条 + 完整报告展示 + 节奏曲线SVG + 评估历史 + Token用量成本追踪），共 154 个测试通过（后端 98 + 前端 56）。参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 
 ## Skill routing
 
