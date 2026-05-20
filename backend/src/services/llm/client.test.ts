@@ -219,6 +219,28 @@ describe("LLMClient", () => {
     );
   });
 
+  it("should configure timeout on OpenAI client (default 45s)", () => {
+    const OpenAI = require("openai").default;
+    createLLMClient({ apiKey: "test-key" });
+
+    expect(OpenAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        timeout: 45000,
+      })
+    );
+  });
+
+  it("should allow custom timeout override", () => {
+    const OpenAI = require("openai").default;
+    createLLMClient({ apiKey: "test-key", timeout: 30000 });
+
+    expect(OpenAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        timeout: 30000,
+      })
+    );
+  });
+
   it("should extract and return token usage from API response", async () => {
     const validResponse: LLMResult = {
       hookScore: 7,

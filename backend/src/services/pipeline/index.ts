@@ -64,15 +64,17 @@ export function createEvaluationPipeline(
       };
       const prompt = buildEvaluationPrompt(signals);
 
-      // 步骤 4-5：LLM 评估阶段
-      notify?.({ step: 4, stepName: "评估Hook强度" });
-      notify?.({ step: 5, stepName: "评估章末悬念" });
+      // 步骤 4：构建 AI 提示
+      notify?.({ step: 4, stepName: "构建 AI 提示…" });
+
+      // 步骤 5：调用 AI 分析（LLM 调用期间显示此步骤）
+      notify?.({ step: 5, stepName: "调用 AI 分析…" });
 
       // 阶段 3：调用 LLM 进行评估
       const llmCallResult = await deps.evaluateWithLLM(text, prompt).catch(() => null);
 
-      // 步骤 6：检查一致性
-      notify?.({ step: 6, stepName: "检查一致性" });
+      // 步骤 6：处理 AI 结果 + 一致性校验
+      notify?.({ step: 6, stepName: "处理 AI 结果…" });
 
       const isPartial = llmCallResult === null;
       const llmResult = llmCallResult?.result ?? null;

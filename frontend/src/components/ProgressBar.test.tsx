@@ -16,7 +16,7 @@ describe("ProgressBar", () => {
     const step1 = screen.getByText("正在验证文本").closest("li");
     const step2 = screen.getByText("分析爽点密度").closest("li");
     const step3 = screen.getByText("分析节奏").closest("li");
-    const step4 = screen.getByText("评估Hook强度").closest("li");
+    const step4 = screen.getByText("构建 AI 提示…").closest("li");
 
     expect(step1?.getAttribute("data-state")).toBe("completed");
     expect(step2?.getAttribute("data-state")).toBe("completed");
@@ -39,7 +39,7 @@ describe("ProgressBar", () => {
       .getAllByRole("listitem")
       .find((item) => item.getAttribute("data-state") === "active");
     expect(activeItem).toBeDefined();
-    expect(activeItem?.textContent).toContain("评估Hook强度");
+    expect(activeItem?.textContent).toContain("构建 AI 提示…");
   });
 
   it("should show all steps as pending when currentStep is 0", () => {

@@ -7,9 +7,9 @@ export const EVALUATION_STEPS: StepDef[] = [
   { step: 1, stepName: "正在验证文本" },
   { step: 2, stepName: "分析爽点密度" },
   { step: 3, stepName: "分析节奏" },
-  { step: 4, stepName: "评估Hook强度" },
-  { step: 5, stepName: "评估章末悬念" },
-  { step: 6, stepName: "检查一致性" },
+  { step: 4, stepName: "构建 AI 提示…" },
+  { step: 5, stepName: "调用 AI 分析…" },
+  { step: 6, stepName: "处理 AI 结果…" },
   { step: 7, stepName: "生成报告" },
 ];
 

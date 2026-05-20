@@ -16,6 +16,7 @@ export interface LLMClientConfig {
   apiKey: string;
   baseURL?: string;
   maxRetries?: number;
+  timeout?: number;
 }
 
 export interface TokenUsage {
@@ -34,6 +35,7 @@ export interface LLMClient {
 
 const DEFAULT_BASE_URL = "https://api.deepseek.com/v1";
 const DEFAULT_MAX_RETRIES = 1;
+const DEFAULT_TIMEOUT = 45000;
 
 function stripMarkdownFences(content: string): string {
   // 移除 ```json ... ``` 或 ``` ... ```
@@ -89,6 +91,7 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
   const openai = new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL || DEFAULT_BASE_URL,
+    timeout: config.timeout ?? DEFAULT_TIMEOUT,
   });
 
   const maxRetries = config.maxRetries ?? DEFAULT_MAX_RETRIES;
