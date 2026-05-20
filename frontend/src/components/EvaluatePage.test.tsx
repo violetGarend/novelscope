@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EvaluatePage } from "./EvaluatePage";
+import { getRandomTestChapter } from "../test-utils/chapterLoader";
 
 // Mock localStorage
 const storage = new Map<string, string>();
@@ -60,7 +61,7 @@ describe("EvaluatePage", () => {
     render(<EvaluatePage />);
 
     const textarea = screen.getByPlaceholderText(/输入章节文本/i);
-    await user.type(textarea, "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4));
+    fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
     // Progress bar should appear, form should disappear
@@ -128,7 +129,7 @@ describe("EvaluatePage", () => {
     render(<EvaluatePage />);
 
     const textarea = screen.getByPlaceholderText(/输入章节文本/i);
-    await user.type(textarea, "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4));
+    fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
     // ReportCard should appear with scores and highlights
@@ -147,7 +148,7 @@ describe("EvaluatePage", () => {
     render(<EvaluatePage />);
 
     const textarea = screen.getByPlaceholderText(/输入章节文本/i);
-    await user.type(textarea, "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4));
+    fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
     await waitFor(() => {
@@ -176,7 +177,7 @@ describe("EvaluatePage", () => {
     render(<EvaluatePage />);
 
     const textarea = screen.getByPlaceholderText(/输入章节文本/i);
-    await user.type(textarea, "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4));
+    fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
     // Skeleton should be visible while currentStep is 0

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { POST } from "./route";
+import { getRandomTestChapter } from "../../../../test-utils/chapterLoader";
 
 function createRequest(body: unknown): Request {
   return new Request("http://localhost:3001/api/evaluate/stream", {
@@ -30,15 +31,15 @@ async function readSSEStream(response: Response): Promise<string[]> {
 }
 
 describe("POST /api/evaluate/stream", () => {
+  const validText = getRandomTestChapter();
+
   it("should return text/event-stream content type", async () => {
-    const validText = "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4);
     const req = createRequest({ chapterText: validText });
     const res = await POST(req);
     expect(res.headers.get("Content-Type")).toBe("text/event-stream");
   });
 
   it("should stream 7 progress events with correct step names", async () => {
-    const validText = "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4);
     const req = createRequest({ chapterText: validText });
     const res = await POST(req);
 
@@ -64,7 +65,6 @@ describe("POST /api/evaluate/stream", () => {
   });
 
   it("should end with a result event containing scores", async () => {
-    const validText = "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。".repeat(4);
     const req = createRequest({ chapterText: validText });
     const res = await POST(req);
 

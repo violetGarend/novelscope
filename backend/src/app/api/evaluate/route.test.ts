@@ -1,6 +1,7 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { validateChapterText } from "./validate";
 import { POST } from "./route";
+import { getRandomTestChapter } from "../../../test-utils/chapterLoader";
 
 function createRequest(body: unknown): Request {
   return new Request("http://localhost:3001/api/evaluate", {
@@ -17,12 +18,12 @@ describe("validateChapterText", () => {
     expect(validateChapterText("").valid).toBe(false);
   });
 
-  it("should reject text shorter than 100 characters", () => {
+  it("should reject text shorter than 1000 characters", () => {
     const shortText = "这是一段短文本。";
     const result = validateChapterText(shortText);
     expect(result.valid).toBe(false);
     expect(result.error?.code).toBe("VALIDATION_ERROR");
-    expect(result.error?.message).toContain("100");
+    expect(result.error?.message).toContain("1000");
   });
 
   it("should reject text longer than 50000 characters", () => {
@@ -34,7 +35,7 @@ describe("validateChapterText", () => {
   });
 
   it("should reject non-Chinese text", () => {
-    const englishText = "This is an English text that is long enough to pass the length check but should fail the language validation. ".repeat(5);
+    const englishText = "This is an English text that is long enough to pass the length check but should fail the language validation. ".repeat(12);
     const result = validateChapterText(englishText);
     expect(result.valid).toBe(false);
     expect(result.error?.code).toBe("VALIDATION_ERROR");
@@ -42,14 +43,14 @@ describe("validateChapterText", () => {
   });
 
   it("should accept valid Chinese text", () => {
-    const validText = "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。".repeat(5);
+    const validText = getRandomTestChapter();
     const result = validateChapterText(validText);
     expect(result.valid).toBe(true);
     expect(result.error).toBeUndefined();
   });
 
-  it("should accept text at exact boundaries (100 chars)", () => {
-    const boundaryText = "字".repeat(100);
+  it("should accept text at exact boundaries (1000 chars)", () => {
+    const boundaryText = "字".repeat(1000);
     const result = validateChapterText(boundaryText);
     expect(result.valid).toBe(true);
   });
@@ -79,7 +80,7 @@ describe("POST /api/evaluate", () => {
   });
 
   it("should return 200 with evaluation result for valid text", async () => {
-    const validText = "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭，从此踏上巅峰之路。热血沸腾的战斗，让所有人都震撼不已。他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭，从此踏上巅峰之路。热血沸腾的战斗，让所有人都震撼不已。";
+    const validText = getRandomTestChapter();
     const req = createRequest({ chapterText: validText });
     const res = await POST(req);
     expect(res.status).toBe(200);

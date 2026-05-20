@@ -41,6 +41,10 @@ export interface EvaluationReport {
   costEstimate?: number | null;
 }
 
+function formatNumber(n: number): string {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function scoreColor(score: number): string {
   if (score >= 7) return "text-score-high";
   if (score >= 5) return "text-score-mid";
@@ -186,7 +190,7 @@ export function ReportCard({ report }: { report: EvaluationReport }) {
       {report.tokenUsage && (
         <div className="mt-10 pt-4 border-t border-border text-xs text-text-muted font-mono">
           <span>
-            Token 用量：输入 {report.tokenUsage.promptTokens.toLocaleString()} + 输出 {report.tokenUsage.completionTokens.toLocaleString()}
+            Token 用量：输入 {formatNumber(report.tokenUsage.promptTokens)} + 输出 {formatNumber(report.tokenUsage.completionTokens)}
           </span>
           {report.costEstimate != null && (
             <span className="ml-4">

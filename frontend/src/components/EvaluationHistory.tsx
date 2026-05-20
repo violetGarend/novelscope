@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { loadHistory, type HistoryEntry } from "./historyStore";
 
 function formatTime(ts: number): string {
@@ -24,7 +25,11 @@ export function EvaluationHistory({
 }: {
   onSelect?: (entry: HistoryEntry) => void;
 }) {
-  const entries = loadHistory();
+  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+
+  useEffect(() => {
+    setEntries(loadHistory());
+  }, []);
 
   if (entries.length === 0) {
     return (

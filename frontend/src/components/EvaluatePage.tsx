@@ -22,7 +22,7 @@ export function EvaluatePage() {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (text.length < 100) return;
+    if (text.length < 1000) return;
 
     setPhase("evaluating");
     setCurrentStep(0);
@@ -143,7 +143,7 @@ export function EvaluatePage() {
     <div className="max-w-lg mx-auto p-8">
       <h2 className="font-display text-2xl text-text mb-6">章节评估</h2>
       <textarea
-        placeholder="输入章节文本（至少100字）..."
+        placeholder="输入章节文本（至少1000字）..."
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={10}
@@ -153,7 +153,7 @@ export function EvaluatePage() {
         <span className="text-xs text-text-muted">{text.length} 字</span>
         <button
           onClick={handleSubmit}
-          disabled={text.length < 100}
+          disabled={text.length < 1000}
           className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-200"
         >
           开始评估

@@ -6,8 +6,8 @@
 
 ## Acceptance criteria
 
-- [x] POST /api/evaluate：接收 `chapterText` (100-50000 字符)
-- [x] 输入验证：null/空→400, <100字→400, >50000字→400, 非中文→400
+- [x] POST /api/evaluate：接收 `chapterText` (1000-50000 字符)
+- [x] 输入验证：null/空→400, <1000字→400, >50000字→400, 非中文→400
 - [x] 错误响应格式：`{ error: { code, message, details } }`
 - [x] 成功响应：完整评估报告 JSON（含 reportId, 各项分数, isPartial, tokenUsage, costEstimate）
 - [x] 评估结果通过 Prisma 写入 EvaluationReport 表
