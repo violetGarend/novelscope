@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 
 export interface PacingCurvePoint {
   paragraph: number;
@@ -23,7 +23,7 @@ const TYPE_LABELS: Record<string, string> = {
 const PAD_LEFT = 50;
 const PAD_RIGHT = 20;
 const PAD_TOP = 20;
-const PAD_BOTTOM = 40;
+const PAD_BOTTOM = 50;
 const WIDTH = 800;
 const HEIGHT = 300;
 
@@ -36,8 +36,102 @@ function toY(tension: number): number {
   return PAD_TOP + (1 - tension / 10) * (HEIGHT - PAD_TOP - PAD_BOTTOM);
 }
 
+/** Number of paragraph ticks to show on X-axis based on data count */
+function xTickInterval(dataLength: number): number {
+  if (dataLength <= 15) return 1;
+  if (dataLength <= 30) return 5;
+  return 10;
+}
+
+/** Circle radius adapts to data density */
+function circleRadius(dataLength: number): number {
+  if (dataLength <= 15) return 5;
+  if (dataLength <= 25) return 4;
+  return 3;
+}
+
 export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const lineRef = useRef<SVGPathElement>(null);
+  const prevNearestRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<PacingCurvePoint | null>(null);
+  const [tooltipPixel, setTooltipPixel] = useState<{ x: number; y: number } | null>(null);
+
+  const paragraphs = useMemo(() => data.map((d) => d.paragraph), [data]);
+  const minP = useMemo(() => (paragraphs.length > 0 ? Math.min(...paragraphs) : 1), [paragraphs]);
+  const maxP = useMemo(() => (paragraphs.length > 0 ? Math.max(...paragraphs) : 1), [paragraphs]);
+  const radius = circleRadius(data.length);
+  const tickInterval = xTickInterval(data.length);
+
+  const linePath = useMemo(
+    () =>
+      data
+        .map((d, i) => `${i === 0 ? "M" : "L"}${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`)
+        .join(" "),
+    [data, minP, maxP]
+  );
+
+  const areaPath = useMemo(
+    () =>
+      `${linePath} L${toX(maxP, minP, maxP)},${toY(0)} L${toX(minP, minP, maxP)},${toY(0)} Z`,
+    [linePath, minP, maxP]
+  );
+
+  // Dynamic stroke-dasharray from actual path length
+  useEffect(() => {
+    const el = lineRef.current;
+    if (!el) return;
+    // getTotalLength may be unavailable in jsdom test environment
+    const len = typeof el.getTotalLength === "function" ? el.getTotalLength() : 2000;
+    el.style.strokeDasharray = String(len);
+    el.style.strokeDashoffset = String(len);
+  }, [linePath]);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const svg = svgRef.current;
+      if (!svg || data.length === 0) return;
+      const rect = svg.getBoundingClientRect();
+      const svgX = ((e.clientX - rect.left) / rect.width) * WIDTH;
+      const svgY = ((e.clientY - rect.top) / rect.height) * HEIGHT;
+
+      let nearest: PacingCurvePoint | null = null;
+      let minDist = Infinity;
+      for (const d of data) {
+        const dx = toX(d.paragraph, minP, maxP) - svgX;
+        const dy = toY(d.tension) - svgY;
+        const dist = dx * dx + dy * dy;
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = d;
+        }
+      }
+
+      if (nearest && nearest.paragraph !== prevNearestRef.current) {
+        prevNearestRef.current = nearest.paragraph;
+        setHovered(nearest);
+
+        // Compute pixel position for tooltip relative to parent
+        const parent = svg.parentElement;
+        if (parent) {
+          const parentRect = parent.getBoundingClientRect();
+          const pointPx = (toX(nearest.paragraph, minP, maxP) / WIDTH) * rect.width;
+          const pointPy = (toY(nearest.tension) / HEIGHT) * rect.height;
+          setTooltipPixel({
+            x: rect.left - parentRect.left + pointPx,
+            y: rect.top - parentRect.top + pointPy - 44,
+          });
+        }
+      }
+    },
+    [data, minP, maxP]
+  );
+
+  const handleMouseLeave = useCallback(() => {
+    prevNearestRef.current = null;
+    setHovered(null);
+    setTooltipPixel(null);
+  }, []);
 
   if (data.length === 0) {
     return (
@@ -47,25 +141,18 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
     );
   }
 
-  const paragraphs = data.map((d) => d.paragraph);
-  const minP = Math.min(...paragraphs);
-  const maxP = Math.max(...paragraphs);
-
-  const linePath = data
-    .map((d, i) => `${i === 0 ? "M" : "L"}${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`)
-    .join(" ");
-
-  const areaPath = `${linePath} L${toX(maxP, minP, maxP)},${toY(0)} L${toX(minP, minP, maxP)},${toY(0)} Z`;
-
   const yTicks = [0, 2, 4, 6, 8, 10];
 
   return (
     <div className="relative">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="w-full h-auto"
         aria-label="节奏曲线"
         role="img"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Y-axis grid lines and labels */}
         {yTicks.map((t) => {
@@ -92,6 +179,39 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
             </g>
           );
         })}
+
+        {/* X-axis paragraph ticks */}
+        {data
+          .filter((d) => d.paragraph % tickInterval === 0 || d.paragraph === minP || d.paragraph === maxP)
+          .filter((d, i, arr) => {
+            // Deduplicate: if first/last already covered by interval, don't repeat
+            const prev = arr[i - 1];
+            return !prev || d.paragraph !== prev.paragraph;
+          })
+          .map((d) => {
+            const x = toX(d.paragraph, minP, maxP);
+            return (
+              <g key={`xtick-${d.paragraph}`}>
+                <line
+                  x1={x}
+                  y1={HEIGHT - PAD_BOTTOM}
+                  x2={x}
+                  y2={HEIGHT - PAD_BOTTOM + 5}
+                  stroke="#C5C5BE"
+                  strokeWidth="1"
+                />
+                <text
+                  x={x}
+                  y={HEIGHT - PAD_BOTTOM + 15}
+                  textAnchor="middle"
+                  className="fill-text-muted font-mono"
+                  fontSize="9"
+                >
+                  {d.paragraph}
+                </text>
+              </g>
+            );
+          })}
 
         {/* X-axis label */}
         <text
@@ -133,6 +253,7 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
 
         {/* Tension line */}
         <path
+          ref={lineRef}
           d={linePath}
           fill="none"
           stroke="#1E40AF"
@@ -143,30 +264,34 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         />
 
         {/* Data points — color by type */}
-        {data.map((d) => (
-          <circle
-            key={d.paragraph}
-            cx={toX(d.paragraph, minP, maxP)}
-            cy={toY(d.tension)}
-            r="5"
-            fill={TYPE_COLORS[d.type]}
-            stroke="white"
-            strokeWidth="2"
-            data-paragraph={d.paragraph}
-            className="cursor-pointer transition-transform duration-150 hover:scale-150"
-            onMouseEnter={() => setHovered(d)}
-            onMouseLeave={() => setHovered(null)}
-          />
-        ))}
+        {data.map((d) => {
+          const cx = toX(d.paragraph, minP, maxP);
+          const cy = toY(d.tension);
+          const isHovered = hovered?.paragraph === d.paragraph;
+          return (
+            <circle
+              key={d.paragraph}
+              cx={cx}
+              cy={cy}
+              r={isHovered ? radius * 1.5 : radius}
+              fill={TYPE_COLORS[d.type]}
+              stroke="white"
+              strokeWidth={isHovered ? 2.5 : 2}
+              data-paragraph={d.paragraph}
+              className="cursor-pointer pacing-dot"
+              style={{ transition: "r 0.15s ease, stroke-width 0.15s ease" }}
+            />
+          );
+        })}
       </svg>
 
-      {/* Tooltip */}
-      {hovered && (
+      {/* Tooltip — positioned in pixel space relative to parent */}
+      {hovered && tooltipPixel && (
         <div
           className="absolute z-10 px-3 py-2 bg-surface border border-border rounded-md shadow-sm text-xs pointer-events-none"
           style={{
-            left: toX(hovered.paragraph, minP, maxP),
-            top: toY(hovered.tension) - 40,
+            left: tooltipPixel.x,
+            top: tooltipPixel.y,
             transform: "translate(-50%, 0)",
           }}
         >
@@ -195,9 +320,12 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
       {/* Line animation style */}
       <style>{`
         .pacing-line {
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 2000;
           animation: pacing-draw 1s ease-out forwards;
+        }
+        .pacing-dot:hover {
+          r: ${radius * 1.5};
+          stroke-width: 2.5;
+          transition: r 0.15s ease, stroke-width 0.15s ease;
         }
         @keyframes pacing-draw {
           to {

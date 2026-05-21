@@ -53,6 +53,23 @@ function calculateRatioScore(curve: PacingCurvePoint[]): number {
   return (entropy / Math.log2(3)) * 10;
 }
 
+function downsampleCurve(curve: PacingCurvePoint[]): PacingCurvePoint[] {
+  const n = curve.length;
+  if (n <= 30) return curve;
+  // Keep first and last points to preserve full range
+  const step = n > 60 ? 3 : 2;
+  const sampled: PacingCurvePoint[] = [];
+  for (let i = 0; i < n; i += step) {
+    sampled.push(curve[i]);
+  }
+  // Always include the last point if not already included
+  const lastIncluded = sampled[sampled.length - 1];
+  if (lastIncluded.paragraph !== curve[n - 1].paragraph) {
+    sampled.push(curve[n - 1]);
+  }
+  return sampled;
+}
+
 export function analyzePacing(text: string): PacingResult {
   if (!text || text.trim().length === 0) {
     return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
@@ -88,5 +105,5 @@ export function analyzePacing(text: string): PacingResult {
     description: Math.round((counts.description / total) * 100) / 100,
   };
 
-  return { score, curve, cv: Math.round(cv * 100) / 100, typeRatio };
+  return { score, curve: downsampleCurve(curve), cv: Math.round(cv * 100) / 100, typeRatio };
 }

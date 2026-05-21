@@ -87,6 +87,56 @@ describe("PacingAnalyzer", () => {
     expect(sum).toBeCloseTo(1, 1);
   });
 
+  it("should keep all points when 30 or fewer paragraphs", () => {
+    const paragraphs: string[] = [];
+    for (let i = 0; i < 25; i++) {
+      paragraphs.push(`第${i + 1}段的测试内容，包含一些动作词汇如拔出和攻击。`);
+    }
+    const result = analyzePacing(paragraphs.join("\n\n"));
+    expect(result.curve).toHaveLength(25);
+    // Paragraph numbers should be sequential
+    expect(result.curve[0].paragraph).toBe(1);
+    expect(result.curve[24].paragraph).toBe(25);
+  });
+
+  it("should downsample to every 2nd point for 31-60 paragraphs", () => {
+    const paragraphs: string[] = [];
+    for (let i = 0; i < 50; i++) {
+      paragraphs.push(
+        i % 3 === 0
+          ? "他猛地拔出长剑，全力劈了过去！"
+          : i % 3 === 1
+            ? "「测试对话内容。」「是的。」"
+            : "远处的山峦在夕阳下显得格外宁静，微风拂过。"
+      );
+    }
+    const result = analyzePacing(paragraphs.join("\n\n"));
+    expect(result.curve.length).toBeLessThanOrEqual(26); // 50/2 = 25 + maybe last
+    expect(result.curve.length).toBeGreaterThanOrEqual(25);
+    // First and last paragraphs should be present
+    expect(result.curve[0].paragraph).toBe(1);
+    expect(result.curve[result.curve.length - 1].paragraph).toBe(50);
+  });
+
+  it("should downsample to every 3rd point for 61+ paragraphs", () => {
+    const paragraphs: string[] = [];
+    for (let i = 0; i < 100; i++) {
+      paragraphs.push(
+        i % 3 === 0
+          ? "他猛地拔出长剑，全力劈了过去！暴起攻击敌人。"
+          : i % 3 === 1
+            ? "「测试对话。」「明白。」"
+            : "远处的山峦在夕阳下显得格外宁静。"
+      );
+    }
+    const result = analyzePacing(paragraphs.join("\n\n"));
+    expect(result.curve.length).toBeLessThanOrEqual(35); // 100/3 = 33 + maybe last
+    expect(result.curve.length).toBeGreaterThanOrEqual(33);
+    // First and last paragraphs should be present
+    expect(result.curve[0].paragraph).toBe(1);
+    expect(result.curve[result.curve.length - 1].paragraph).toBe(100);
+  });
+
   it("should return cv=0 and equal typeRatio for empty text", () => {
     const result = analyzePacing("");
     expect(result.cv).toBe(0);

@@ -168,7 +168,7 @@ describe("ReportCard — partial result", () => {
   it("should still display available scores", () => {
     render(<ReportCard report={PARTIAL_REPORT} />);
     expect(screen.getByText("5.0")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument(); // pacing sub-score
+    expect(screen.getAllByText("5").length).toBeGreaterThanOrEqual(1); // pacing sub-score (+ possible X-axis tick)
   });
 
   it("should not show LLM-dependent sections when llmResult is null", () => {
