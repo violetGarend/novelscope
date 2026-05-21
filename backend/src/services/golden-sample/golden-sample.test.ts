@@ -415,7 +415,7 @@ describe("createGoldenSampleRunner", () => {
       const report = await runner.validateAll();
 
       expect(report.modelInfo.provider).toBe("DeepSeek");
-      expect(report.modelInfo.model).toBe("deepseek-chat");
+      expect(report.modelInfo.model).toBe("deepseek-v4-flash");
       expect(report.modelInfo.temperature).toBe(0);
     });
   });
@@ -519,7 +519,7 @@ describe("generateMarkdownReport", () => {
   function makeReport(overrides?: Partial<GoldenValidationReport>): GoldenValidationReport {
     return {
       generatedAt: "2026-05-20T10:00:10.000Z",
-      modelInfo: { provider: "DeepSeek", model: "deepseek-chat", temperature: 0 },
+      modelInfo: { provider: "DeepSeek", model: "deepseek-v4-flash", temperature: 0 },
       summary: {
         totalSamples: 2,
         roundsPerSample: 3,
@@ -552,7 +552,7 @@ describe("generateMarkdownReport", () => {
     expect(markdown).toContain("样本A");
     expect(markdown).toContain("样本B");
     expect(markdown).toContain("DeepSeek");
-    expect(markdown).toContain("deepseek-chat");
+    expect(markdown).toContain("deepseek-v4-flash");
   });
 
   it("should include variance and stability status per sample", () => {

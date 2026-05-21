@@ -36,7 +36,35 @@ CEO审查报告: `NovelScope-CEO审查报告.md`
 
 ## 开发模式
 
-单人+AI辅助开发。当前处于 Phase 0（验证期），Issue #1-#11 全部已完成（Prisma Schema + 规则引擎 + DeepSeek LLM Client + 一致性保障管线 + 评估API端点 + 信号注入架构重构 + SSE 进度条 + 完整报告展示 + 节奏曲线SVG + 评估历史 + Token用量成本追踪），共 154 个测试通过（后端 98 + 前端 56）。参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
+单人+AI辅助开发。当前处于 Phase 0（验证期），核心评估管线已完整交付。
+
+**已完成 (12 个 Issue)：**
+| # | 模块 | 说明 |
+|---|------|------|
+| #1 | Prisma Schema | 数据模型定义（Novel/Chapter/EvaluationReport） |
+| #2 | Climax 规则引擎 | 爽点密度检测，5 类 50+ 关键词，0-10 分 |
+| #3 | Pacing 规则引擎 | 段落分类+张力曲线+降采样+CV/熵评分 |
+| #4 | Filler 规则引擎 | bigram Jaccard 注水检测 |
+| #5 | LLM Client | DeepSeek-v4-flash，OpenAI SDK 兼容，45s 超时+重试 |
+| #6 | Prompt 模板 | 信号注入架构，规则引擎→LLM 结构化上下文 |
+| #7 | Guard 一致性保障 | clamp + weighted sum + Golden Sample 方差校验 |
+| #8 | Pipeline | 7 步评估管线 + LLM 失败优雅降级 |
+| #9 | API 端点 | `/api/evaluate` + `/api/evaluate/stream` (SSE) |
+| #10 | 前端 UI | 输入框 + ProgressBar(预热+收尾步骤) + ReportCard + 节奏曲线 SVG |
+| #11 | Token 用量+成本 | LLMCallResult.usage + DeepSeek 定价计算 |
+| #12 | Golden Sample | 5 样本×3 轮，方差<0.5，CLI runner，自动报告 |
+
+**测试：** 234 个测试通过（后端 Jest 133 + 前端 Vitest 101）
+
+**模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
+
+**已决策待实施：**
+- 综合分 → 四维雷达图（取消加权求和）
+- Hook + Cliffhanger 规则引擎兜底（当前 LLM 失败降级为 0）
+- Pacing 降采样保留极值点
+- Prompt 注入评分权重信息
+
+参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 
 ## Skill routing
 

@@ -8,7 +8,11 @@
       "Bash(npx prisma generate *)",
       "mcp__chrome-devtools__fill",
       "mcp__chrome-devtools__take_snapshot",
-      "mcp__chrome-devtools__click"
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__evaluate_script",
+      "Bash(curl -s -X POST http://localhost:3001/api/evaluate -H \"Content-Type: application/json\" -d \"{\\\\\"chapterText\\\\\":\\\\\"他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。这一战，他彻底翻身逆袭。全场爆发出雷鸣般的掌声，所有人都站起来了。\\\\\"}\")",
+      "Bash(node -e ' *)",
+      "mcp__chrome-devtools__navigate_page"
     ]
   },
   "hooks": {

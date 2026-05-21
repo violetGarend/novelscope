@@ -1,7 +1,7 @@
 # Golden Sample 验证报告
 
 **生成时间**: 2026-05-20T14:51:10.792Z
-**模型**: DeepSeek deepseek-chat (temperature=0)
+**模型**: DeepSeek deepseek-v4-flash (temperature=0)
 **样本数**: 5 | **每样本轮数**: 3
 
 ## 总体结果

@@ -103,7 +103,7 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           const response = await openai.chat.completions.create({
-            model: "deepseek-chat",
+            model: "deepseek-v4-flash",
             temperature: 0,
             messages: [
               { role: "system", content: prompt },

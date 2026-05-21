@@ -248,7 +248,7 @@ export function createGoldenSampleRunner(
         generatedAt: new Date().toISOString(),
         modelInfo: {
           provider: "DeepSeek",
-          model: "deepseek-chat",
+          model: "deepseek-v4-flash",
           temperature: 0,
         },
         summary: {
