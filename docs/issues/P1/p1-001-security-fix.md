@@ -2,7 +2,7 @@
 
 ## What to build
 
-当前 `.env.example` 文件包含真实 DeepSeek API key（`sk-your-deepseek-api-key`）且已提交到 git 历史。需要：
+需要完成安全加固：
 
 1. 在 DeepSeek 控制台轮换 API key（立即）
 2. 使用 `git filter-repo` 清除 git 历史中所有提交的 API key
