@@ -26,4 +26,32 @@ describe("calculateCost", () => {
     const outputOnly = calculateCost({ promptTokens: 0, completionTokens: 1000 });
     expect(outputOnly).toBe(inputOnly * 2);
   });
+
+  describe("Doubao pricing", () => {
+    it("should calculate cost based on Doubao pricing", () => {
+      // ¥0.8/百万输入 + ¥2/百万输出
+      const cost = calculateCost(
+        { promptTokens: 1_000_000, completionTokens: 1_000_000 },
+        "doubao-seed-2-0-lite-260428"
+      );
+      expect(cost).toBe(2.8); // ¥0.8 + ¥2
+    });
+
+    it("should handle fractional tokens at typical evaluation usage", () => {
+      const cost = calculateCost(
+        { promptTokens: 1500, completionTokens: 300 },
+        "doubao-seed-2-0-lite-260428"
+      );
+      // 1500/1M * 0.8 + 300/1M * 2 = 0.0012 + 0.0006 = 0.0018
+      expect(cost).toBeCloseTo(0.0018, 5);
+    });
+
+    it("should fall back to DeepSeek pricing for unknown models", () => {
+      const cost = calculateCost(
+        { promptTokens: 1_000_000, completionTokens: 1_000_000 },
+        "unknown-model"
+      );
+      expect(cost).toBe(3); // DeepSeek: ¥1 + ¥2
+    });
+  });
 });

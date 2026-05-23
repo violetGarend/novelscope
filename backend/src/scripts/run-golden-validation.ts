@@ -11,7 +11,7 @@ import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
 import { analyzeHook } from "@/services/hook";
 import { analyzeCliffhanger } from "@/services/cliffhanger";
-import { createLLMClient } from "@/services/llm";
+import { createLLMClient, getLLMConfig } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
 import {
   createGoldenSampleRunner,
@@ -84,10 +84,13 @@ function generateRecommendations(report: GoldenValidationReport): string[] {
 
 async function main() {
   // Check for API key
-  const apiKey = process.env.DEEPSEEK_API_KEY;
+  const config = getLLMConfig();
+  const { apiKey } = config;
+  const provider = process.env.LLM_PROVIDER || "deepseek";
+  const keyName = provider === "doubao" ? "DOUBAO_API_KEY" : "DEEPSEEK_API_KEY";
   if (!apiKey || apiKey.trim() === "") {
-    console.log("⚠ DEEPSEEK_API_KEY not set. Running in dry-run mode (mock data).");
-    console.log("  Set DEEPSEEK_API_KEY in backend/.env to run with real LLM.\n");
+    console.log(`⚠ ${keyName} not set. Running in dry-run mode (mock data).`);
+    console.log(`  Set ${keyName} in backend/.env to run with real LLM.\n`);
   }
 
   // Build pipeline with real services
@@ -109,13 +112,13 @@ async function main() {
             consistencyIssues: [],
             highlights: ["（dry-run: LLM 评估未启用）"],
             suggestions: [
-              { severity: "info", location: "", issue: "设置 DEEPSEEK_API_KEY 环境变量以启用完整评估", direction: "在 backend/.env 中设置" },
+              { severity: "info", location: "", issue: `设置 ${keyName} 环境变量以启用完整评估`, direction: "在 backend/.env 中设置" },
             ],
           },
           usage: { promptTokens: 0, completionTokens: 0 },
         };
       }
-      const client = createLLMClient({ apiKey, maxRetries: 2 });
+      const client = createLLMClient({ ...config, maxRetries: 2 });
       return client.evaluateWithLLM(chapterText, prompt);
     },
   });
@@ -160,11 +163,14 @@ async function main() {
     }
   }
 
+  const llmConfig = getLLMConfig();
+  const provider = llmConfig.model.startsWith("doubao-") ? "Doubao" : "DeepSeek";
+
   const report: GoldenValidationReport = {
     generatedAt: new Date().toISOString(),
     modelInfo: {
-      provider: "DeepSeek",
-      model: "deepseek-v4-flash",
+      provider,
+      model: llmConfig.model,
       temperature: 0,
     },
     summary: {

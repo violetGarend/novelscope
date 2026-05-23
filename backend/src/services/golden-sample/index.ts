@@ -3,6 +3,7 @@ import type { TokenUsage } from "../llm";
 import type { EvaluationResult } from "../pipeline";
 import { checkVariance } from "../guard";
 import { calculateCost } from "@/lib/cost";
+import { getLLMConfig } from "@/services/llm";
 
 // ── Golden Sample Definition ──
 
@@ -240,11 +241,14 @@ export function createGoldenSampleRunner(
         completionTokens: totalCompletion,
       };
 
+      const llmConfig = getLLMConfig();
+      const provider = llmConfig.model.startsWith("doubao-") ? "Doubao" : "DeepSeek";
+
       return {
         generatedAt: new Date().toISOString(),
         modelInfo: {
-          provider: "DeepSeek",
-          model: "deepseek-v4-flash",
+          provider,
+          model: llmConfig.model,
           temperature: 0,
         },
         summary: {
@@ -256,7 +260,7 @@ export function createGoldenSampleRunner(
           ).length,
           overallStable: sampleResults.every((r) => r.stabilityPass),
           totalTokensUsed: totalTokens,
-          totalCostEstimate: calculateCost(totalTokens),
+          totalCostEstimate: calculateCost(totalTokens, llmConfig.model),
           totalDurationMs: Date.now() - start,
         },
         samples: sampleResults,

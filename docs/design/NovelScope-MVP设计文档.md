@@ -488,7 +488,7 @@ Response:
 - PostgreSQL（Supabase托管，免费层足够MVP）
 
 ### Phase 2+
-- Claude API（辅模型，用于需要更高质量的评估场景）
+- 豆包 API（辅模型，用于需要更高质量的评估场景）
 - 微信支付/支付宝（付费系统）
 - BGE-large-zh / Qwen3-Embedding（记忆管理RAG，Phase 2才需要）
 

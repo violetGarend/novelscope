@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 数据库 | PostgreSQL + Prisma ORM |
 | 向量数据库 | Pinecone |
 | 缓存 | Redis |
-| 大模型 | DeepSeek API（主）+ Claude API（辅） |
+| 大模型 | DeepSeek API（主）+ 豆包 API（辅） |
 | 嵌入模型 | BGE-large-zh / Qwen3-Embedding |
 | 部署 | Vercel（前端 + API Routes）|
 | 支付 | 微信支付+支付宝 |

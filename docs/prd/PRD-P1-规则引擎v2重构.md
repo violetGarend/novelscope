@@ -8,7 +8,7 @@
 
 ## Solution
 
-规则引擎转型为特征提取器，输出结构化特征数据（关键词命中、段落类型分布、相似度数据等）作为 LLM prompt 中的上下文。Prompt v2 引入 6 个锚点（0/2/4/6/8/10，每档配中文网文示例）和软化分布引导，替代模糊的"给个 0-10 分"。DeepSeek + Claude 双模型并行打分，分数分歧 >2 时标记为"需人工判断"。双模型同时挂掉时，规则特征自动转化为定性报告（"AI 服务暂不可用，以下为规则分析"）。校准 CLI 作为 P1 gate——先验证 Prompt v2 单独效果（方差充足），再决定是否构建双模型。
+规则引擎转型为特征提取器，输出结构化特征数据（关键词命中、段落类型分布、相似度数据等）作为 LLM prompt 中的上下文。Prompt v2 引入 6 个锚点（0/2/4/6/8/10，每档配中文网文示例）和软化分布引导，替代模糊的"给个 0-10 分"。DeepSeek + 豆包 双模型并行打分，分数分歧 >2 时标记为"需人工判断"。双模型同时挂掉时，规则特征自动转化为定性报告（"AI 服务暂不可用，以下为规则分析"）。校准 CLI 作为 P1 gate——先验证 Prompt v2 单独效果（方差充足），再决定是否构建双模型。
 
 ## User Stories
 
@@ -103,7 +103,7 @@ Pipeline 层扩展为多模型编排：
 ### 模块 7: 前端适配（T5 — 阻塞于 T1+T3+T8）
 
 - Discriminated union 渲染：`{status:'complete'} | {status:'degraded'} | {status:'partial'}`
-- 完整态：双模型双色叠加雷达图（DeepSeek #1E40AF 蓝实线 + Claude #7C3AED 紫虚线）+ 图例 + 共识/分歧标签
+- 完整态：双模型双色叠加雷达图（DeepSeek #1E40AF 蓝实线 + 豆包 #7C3AED 紫虚线）+ 图例 + 共识/分歧标签
 - 分歧标记：维度旁 ⚠ 图标 + hover tooltip（双方分数 + 差值），严格 >2 触发
 - 降级态：替换 LLM 区域（亮点/建议/雷达图）为定性叙述，保留规则引擎数据 + 顶部横幅 + 底部重试按钮
 - 部分成功态：单模型雷达图 + 缺失模型标记 + 黄色提示条
@@ -111,8 +111,8 @@ Pipeline 层扩展为多模型编排：
 - 加载态：保持现有 7 步进度条
 - 情感弧线：保持"优势先行"顺序（亮点→建议→雷达图→规则数据）
 - 色盲适配：颜色 + 线型双重编码
-- ARIA：《四维雷达图，DeepSeek 评分和 Claude 评分叠加显示》
-- ../design/DESIGN.md 追加 2 个 color token（Claude 紫、Divergence 复用 warning 橙）
+- ARIA：《四维雷达图，DeepSeek 评分和豆包评分叠加显示》
+- ../design/DESIGN.md 追加 2 个 color token（豆包紫、Divergence 复用 warning 橙）
 
 ### 模块 8: Filler 性能优化（T7）
 
@@ -129,7 +129,7 @@ type EvaluationResult =
 
 interface DualModelScores {
   deepseek: DimensionScores;
-  claude: DimensionScores;
+  doubao: DimensionScores;
 }
 
 interface DimensionScores {
@@ -140,7 +140,7 @@ interface DimensionScores {
 }
 
 interface DivergenceReport {
-  dimensions: Array<{ dimension: string; deepseek: number; claude: number; delta: number }>;
+  dimensions: Array<{ dimension: string; deepseek: number; doubao: number; delta: number }>;
 }
 ```
 

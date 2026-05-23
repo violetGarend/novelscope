@@ -348,7 +348,7 @@
 | 数据库 | PostgreSQL + Prisma ORM | 成熟稳定，AI辅助开发友好 |
 | 向量数据库 | Pinecone（托管） | 免运维，按量付费 |
 | 缓存 | Redis | 会话管理+热数据缓存 |
-| 大模型 | DeepSeek API（主）+ Claude API（辅） | DeepSeek性价比高，Claude质量好 |
+| 大模型 | DeepSeek API（主）+ 豆包 API（辅） | DeepSeek性价比高，豆包中文网文优势强 |
 | 嵌入模型 | BGE-large-zh / Qwen3-Embedding | 中文向量效果好 |
 | 部署 | Vercel（前端 + API Routes） | 自动化部署，单人友好 |
 | 支付 | 微信支付+支付宝 | 国内用户习惯 |

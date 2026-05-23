@@ -22,7 +22,7 @@ AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——
 | 数据库 | PostgreSQL + Prisma ORM |
 | 向量数据库 | pgvector（P1） |
 | 缓存 | Redis（P2） |
-| LLM | DeepSeek-v4-flash（主）+ Claude API（辅，P1.3） |
+| LLM | DeepSeek-v4-flash（主）+ 豆包 API（辅，P1） |
 | 嵌入模型 | bge-small-zh（P1.4） |
 | 部署 | Vercel（P2） |
 | 支付 | PayJS — 微信支付 + 支付宝（P1.6） |
@@ -72,8 +72,8 @@ DEEPSEEK_API_KEY=sk-your-deepseek-api-key
 # 必填：PostgreSQL 数据库连接
 DATABASE_URL=postgresql://localhost:5432/novelscope
 
-# 可选：Claude API Key（P1.3 双模型对比，未配置时仅用 DeepSeek）
-# ANTHROPIC_API_KEY=sk-ant-your-claude-api-key
+# 可选：豆包 API Key（P1 双模型对比，未配置时仅用 DeepSeek）
+# DOUBAO_API_KEY=your-doubao-api-key
 ```
 
 ### 4. 数据库迁移
@@ -108,7 +108,7 @@ npm run dev
 │       │   ├── filler/    # 注水检测规则引擎
 │       │   ├── hook/      # Hook 检测规则引擎
 │       │   ├── cliffhanger/  # Cliffhanger 检测规则引擎
-│       │   ├── llm/       # LLM Client（DeepSeek + Claude）
+│       │   ├── llm/       # LLM Client（DeepSeek + 豆包）
 │       │   ├── prompt/    # Prompt 模板（锚点 + 信号注入）
 │       │   ├── guard/     # 分数钳制 + 方差校验
 │       │   ├── pipeline/  # 评估管线编排
@@ -183,7 +183,7 @@ P0 使用四维雷达图（已取消加权综合分）：
 | Cliffhanger | 章末悬念 | 规则引擎（章末悬念检测）+ LLM 调整 |
 | Pacing | 节奏 | 规则引擎（段落分类 + 张力曲线）+ LLM 调整 |
 
-P1.1 规则引擎 v2 重构将引擎转型为特征提取器，Prompt v2 引入 6 锚点评分 + 软化分布引导 + DeepSeek/Claude 双模型交叉验证，修复趋中评分问题。详见 [PRD](docs/prd/PRD-P1-规则引擎v2重构.md)。
+P1.1 规则引擎 v2 重构将引擎转型为特征提取器，Prompt v2 引入 6 锚点评分 + 软化分布引导 + DeepSeek/豆包 双模型交叉验证，修复趋中评分问题。详见 [PRD](docs/prd/PRD-P1-规则引擎v2重构.md)。
 
 ## 文档
 

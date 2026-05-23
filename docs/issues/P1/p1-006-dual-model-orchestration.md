@@ -10,7 +10,7 @@
 
 ## What to build
 
-将评估 pipeline 从单模型（DeepSeek）扩展为双模型并行编排（DeepSeek + Claude），并实现完整的降级路径。
+将评估 pipeline 从单模型（DeepSeek）扩展为双模型并行编排（DeepSeek + 豆包），并实现完整的降级路径。
 
 **核心变更：**
 

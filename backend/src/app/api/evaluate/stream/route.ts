@@ -6,7 +6,7 @@ import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
 import { analyzeHook } from "@/services/hook";
 import { analyzeCliffhanger } from "@/services/cliffhanger";
-import { createLLMClient } from "@/services/llm";
+import { createLLMClient, getLLMConfig } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
 import { calculateCost } from "@/lib/cost";
 import { CORS_HEADERS } from "@/lib/cors";
@@ -27,8 +27,10 @@ const pipeline = createEvaluationPipeline(
     analyzeHook,
     analyzeCliffhanger,
     evaluateWithLLM: async (chapterText: string, prompt: string): Promise<LLMCallResult> => {
-      const apiKey = process.env.DEEPSEEK_API_KEY;
-      if (!apiKey) {
+      const config = getLLMConfig();
+      if (!config.apiKey) {
+        const provider = process.env.LLM_PROVIDER || "deepseek";
+        const keyName = provider === "doubao" ? "DOUBAO_API_KEY" : "DEEPSEEK_API_KEY";
         return {
           result: {
             hookScore: 5,
@@ -36,15 +38,15 @@ const pipeline = createEvaluationPipeline(
             cliffhangerScore: 5,
             pacingScore: 5,
             consistencyIssues: [],
-            highlights: ["（P0 阶段：LLM 评估未启用）"],
+            highlights: ["（LLM 评估未启用）"],
             suggestions: [
-              { severity: "info", location: "", issue: "建议配置 DEEPSEEK_API_KEY 以启用完整评估", direction: "在 backend/.env 中设置环境变量" },
+              { severity: "info", location: "", issue: `建议配置 ${keyName} 以启用完整评估`, direction: "在 backend/.env 中设置环境变量" },
             ],
           },
           usage: { promptTokens: 0, completionTokens: 0 },
         };
       }
-      const client = createLLMClient({ apiKey });
+      const client = createLLMClient(config);
       return client.evaluateWithLLM(chapterText, prompt);
     },
   }
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
         const tokenUsage = result.tokenUsage && result.tokenUsage.promptTokens > 0
           ? result.tokenUsage
           : null;
-        const costEstimate = tokenUsage ? calculateCost(tokenUsage) : null;
+        const costEstimate = tokenUsage ? calculateCost(tokenUsage, getLLMConfig().model) : null;
 
         send({
           type: "result",

@@ -14,6 +14,7 @@ export class LLMClientError extends Error {
 
 export interface LLMClientConfig {
   apiKey: string;
+  model: string;
   baseURL?: string;
   maxRetries?: number;
   timeout?: number;
@@ -103,7 +104,7 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           const response = await openai.chat.completions.create({
-            model: "deepseek-v4-flash",
+            model: config.model,
             temperature: 0,
             messages: [
               { role: "system", content: prompt },
@@ -165,5 +166,33 @@ export function createLLMClient(config: LLMClientConfig): LLMClient {
       // 不应该到达这里，但 TypeScript 需要
       throw lastError || new LLMClientError("Unknown error", "INVALID_RESPONSE");
     },
+  };
+}
+
+const DEEPSEEK_CONFIG = {
+  model: "deepseek-v4-flash",
+  baseURL: "https://api.deepseek.com/v1",
+} as const;
+
+const DOUBAO_CONFIG = {
+  model: "doubao-seed-2-0-lite-260428",
+  baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+} as const;
+
+export function getLLMConfig(): LLMClientConfig {
+  const provider = process.env.LLM_PROVIDER || "deepseek";
+
+  if (provider === "doubao") {
+    return {
+      apiKey: process.env.DOUBAO_API_KEY || "",
+      model: DOUBAO_CONFIG.model,
+      baseURL: DOUBAO_CONFIG.baseURL,
+    };
+  }
+
+  return {
+    apiKey: process.env.DEEPSEEK_API_KEY || "",
+    model: DEEPSEEK_CONFIG.model,
+    baseURL: DEEPSEEK_CONFIG.baseURL,
   };
 }
