@@ -20,7 +20,7 @@ const SUSPENSE_KEYWORDS = [
   "难道", "莫非", "怎么可能", "不可思议",
 ];
 
-const DIALOGUE_MARKERS = /[「」""''「」:：]/;
+const DIALOGUE_MARKERS = /[“”‘’「」『』:：]/;
 
 function hasQuestion(paragraph: string): boolean {
   return /[？?]/.test(paragraph);
@@ -77,7 +77,8 @@ export function analyzeHook(text: string): HookResult {
     };
   }
 
-  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
+  const normalized = text.replace(/\r\n/g, "\n");
+  const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
     return {
       score: 0,

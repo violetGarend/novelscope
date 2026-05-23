@@ -192,6 +192,89 @@ describe("PacingCurve", () => {
     expect(circle!.getAttribute("onmouseleave")).toBeNull();
   });
 
+  // ---- three segmented lines (Issue #17) ----
+  it("should render three segmented paths (one per type)", () => {
+    const { container } = render(<PacingCurve data={SAMPLE_DATA} />);
+    const paths = container.querySelectorAll("path[data-type]");
+    const types = Array.from(paths).map((p) => p.getAttribute("data-type"));
+    expect(types).toContain("action");
+    expect(types).toContain("dialogue");
+    expect(types).toContain("description");
+  });
+
+  it("should render a dashed trend line", () => {
+    const { container } = render(<PacingCurve data={SAMPLE_DATA} />);
+    const trend = container.querySelector(".trend-line") as SVGPathElement;
+    expect(trend).toBeInTheDocument();
+    expect(trend.getAttribute("stroke-dasharray")).toBe("6,4");
+  });
+
+  it("should render chart title", () => {
+    render(<PacingCurve data={SAMPLE_DATA} />);
+    expect(screen.getByText("段落张力走势")).toBeInTheDocument();
+  });
+
+  it("should render line-segment legend (not dots)", () => {
+    render(<PacingCurve data={SAMPLE_DATA} />);
+    // Legend items are buttons with line segments, not colored dots
+    expect(screen.getByText("动作")).toBeInTheDocument();
+    expect(screen.getByText("对话")).toBeInTheDocument();
+    expect(screen.getByText("描写")).toBeInTheDocument();
+    // Legacy rounded dots should not be present in legend area
+    const legend = screen.getByText("动作").closest("div")!;
+    const dots = legend.querySelectorAll(".rounded-full");
+    expect(dots).toHaveLength(0);
+  });
+
+  it("should hide action line when legend is clicked", () => {
+    const { container } = render(<PacingCurve data={SAMPLE_DATA} />);
+    // All action paths visible initially
+    const actionPathsBefore = container.querySelectorAll(
+      "path[data-type='action']"
+    );
+    expect(actionPathsBefore.length).toBeGreaterThan(0);
+
+    // Click "动作" legend button
+    fireEvent.click(screen.getByText("动作"));
+
+    // Action paths should be gone
+    const actionPathsAfter = container.querySelectorAll(
+      "path[data-type='action']"
+    );
+    expect(actionPathsAfter).toHaveLength(0);
+  });
+
+  it("should restore action line when legend is clicked again", () => {
+    const { container } = render(<PacingCurve data={SAMPLE_DATA} />);
+    const btn = screen.getByText("动作");
+    fireEvent.click(btn); // hide
+    fireEvent.click(btn); // show
+    const actionPaths = container.querySelectorAll("path[data-type='action']");
+    expect(actionPaths.length).toBeGreaterThan(0);
+  });
+
+  it("should dim legend item when hidden", () => {
+    render(<PacingCurve data={SAMPLE_DATA} />);
+    const btn = screen.getByText("动作").closest("button")!;
+    expect(btn.className).toContain("opacity-100");
+    fireEvent.click(btn);
+    expect(btn.className).toContain("opacity-30");
+  });
+
+  it("should hide data circles when type is hidden", () => {
+    const { container } = render(<PacingCurve data={SAMPLE_DATA} />);
+    const actionCirclesBefore = container.querySelectorAll(
+      "circle[data-type='action']"
+    );
+    expect(actionCirclesBefore.length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByText("动作"));
+    const actionCirclesAfter = container.querySelectorAll(
+      "circle[data-type='action']"
+    );
+    expect(actionCirclesAfter).toHaveLength(0);
+  });
+
   // ---- edge cases ----
   it("should render single data point without error", () => {
     const single: PacingCurvePoint[] = [{ paragraph: 1, tension: 5, type: "dialogue" }];

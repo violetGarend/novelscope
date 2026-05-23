@@ -17,11 +17,15 @@ const ACTION_KEYWORDS = [
   "猛地", "全力", "暴起", "飞身", "扑", "跃", "跳",
 ];
 
-const DIALOGUE_PATTERN = /[「」""''「」]|^[""].*[""]$/;
+// 中文网文常见引号：ASCII 直双引号 "、弯双引号 " "、直单引号 '、弯单引号 ' '、
+// 日式引号 「 」 『 』
+const QUOTE_CHARS = /["“”‘’「」『』]/;
 
 function classifyParagraph(text: string): "action" | "dialogue" | "description" {
   const trimmed = text.trim();
-  if (DIALOGUE_PATTERN.test(trimmed)) return "dialogue";
+
+  if (QUOTE_CHARS.test(trimmed)) return "dialogue";
+
   const actionHits = ACTION_KEYWORDS.filter((kw) => trimmed.includes(kw)).length;
   if (actionHits >= 2) return "action";
   return "description";
@@ -75,7 +79,8 @@ export function analyzePacing(text: string): PacingResult {
     return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }
 
-  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
+  const normalized = text.replace(/\r\n/g, "\n");
+  const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
     return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }

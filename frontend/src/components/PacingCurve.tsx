@@ -22,7 +22,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 const PAD_LEFT = 50;
 const PAD_RIGHT = 20;
-const PAD_TOP = 20;
+const PAD_TOP = 30;
 const PAD_BOTTOM = 50;
 const WIDTH = 800;
 const HEIGHT = 300;
@@ -50,12 +50,67 @@ function circleRadius(dataLength: number): number {
   return 3;
 }
 
+interface TypeSegment {
+  type: "action" | "dialogue" | "description";
+  path: string;
+}
+
+function buildSegments(
+  data: PacingCurvePoint[],
+  minP: number,
+  maxP: number
+): TypeSegment[] {
+  const segments: TypeSegment[] = [];
+  let i = 0;
+  while (i < data.length) {
+    const type = data[i].type;
+    const parts: string[] = [];
+    let j = i;
+    while (j < data.length && data[j].type === type) {
+      const d = data[j];
+      parts.push(
+        `${j === i ? "M" : "L"}${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`
+      );
+      j++;
+    }
+    segments.push({ type, path: parts.join(" ") });
+    i = j;
+  }
+  return segments;
+}
+
+function computeTrend(
+  data: PacingCurvePoint[],
+  minP: number,
+  maxP: number
+): string {
+  const byParagraph = new Map<number, number[]>();
+  for (const d of data) {
+    const arr = byParagraph.get(d.paragraph) || [];
+    arr.push(d.tension);
+    byParagraph.set(d.paragraph, arr);
+  }
+  const points = Array.from(byParagraph.entries())
+    .map(([p, tensions]) => ({
+      paragraph: p,
+      tension: tensions.reduce((a, b) => a + b, 0) / tensions.length,
+    }))
+    .sort((a, b) => a.paragraph - b.paragraph);
+
+  return points
+    .map(
+      (d, i) =>
+        `${i === 0 ? "M" : "L"}${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`
+    )
+    .join(" ");
+}
+
 export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const lineRef = useRef<SVGPathElement>(null);
   const prevNearestRef = useRef<number | null>(null);
   const [hovered, setHovered] = useState<PacingCurvePoint | null>(null);
   const [tooltipPixel, setTooltipPixel] = useState<{ x: number; y: number } | null>(null);
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
 
   const paragraphs = useMemo(() => data.map((d) => d.paragraph), [data]);
   const minP = useMemo(() => (paragraphs.length > 0 ? Math.min(...paragraphs) : 1), [paragraphs]);
@@ -63,41 +118,54 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
   const radius = circleRadius(data.length);
   const tickInterval = xTickInterval(data.length);
 
-  const linePath = useMemo(
-    () =>
-      data
-        .map((d, i) => `${i === 0 ? "M" : "L"}${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`)
-        .join(" "),
+  const visibleData = useMemo(
+    () => data.filter((d) => !hiddenTypes.has(d.type)),
+    [data, hiddenTypes]
+  );
+
+  const segments = useMemo(
+    () => buildSegments(data, minP, maxP),
     [data, minP, maxP]
   );
 
-  const areaPath = useMemo(
-    () =>
-      `${linePath} L${toX(maxP, minP, maxP)},${toY(0)} L${toX(minP, minP, maxP)},${toY(0)} Z`,
-    [linePath, minP, maxP]
+  const trendPath = useMemo(
+    () => computeTrend(data, minP, maxP),
+    [data, minP, maxP]
   );
 
-  // Dynamic stroke-dasharray from actual path length
+  const areaPath = useMemo(() => {
+    const pts = data.map(
+      (d) => `L${toX(d.paragraph, minP, maxP)},${toY(d.tension)}`
+    );
+    return `M${toX(minP, minP, maxP)},${toY(0)} ${pts.join(" ")} L${toX(maxP, minP, maxP)},${toY(0)} Z`;
+  }, [data, minP, maxP]);
+
+  // Dynamic stroke-dasharray for animation on all line paths
   useEffect(() => {
-    const el = lineRef.current;
-    if (!el) return;
-    // getTotalLength may be unavailable in jsdom test environment
-    const len = typeof el.getTotalLength === "function" ? el.getTotalLength() : 2000;
-    el.style.strokeDasharray = String(len);
-    el.style.strokeDashoffset = String(len);
-  }, [linePath]);
+    const svg = svgRef.current;
+    if (!svg) return;
+    const paths = svg.querySelectorAll<SVGPathElement>(
+      ".pacing-line, .trend-line"
+    );
+    for (const el of paths) {
+      const len =
+        typeof el.getTotalLength === "function" ? el.getTotalLength() : 2000;
+      el.style.strokeDasharray = String(len);
+      el.style.strokeDashoffset = String(len);
+    }
+  }, [segments, trendPath]);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement>) => {
       const svg = svgRef.current;
-      if (!svg || data.length === 0) return;
+      if (!svg || visibleData.length === 0) return;
       const rect = svg.getBoundingClientRect();
       const svgX = ((e.clientX - rect.left) / rect.width) * WIDTH;
       const svgY = ((e.clientY - rect.top) / rect.height) * HEIGHT;
 
       let nearest: PacingCurvePoint | null = null;
       let minDist = Infinity;
-      for (const d of data) {
+      for (const d of visibleData) {
         const dx = toX(d.paragraph, minP, maxP) - svgX;
         const dy = toY(d.tension) - svgY;
         const dist = dx * dx + dy * dy;
@@ -111,11 +179,11 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         prevNearestRef.current = nearest.paragraph;
         setHovered(nearest);
 
-        // Compute pixel position for tooltip relative to parent
         const parent = svg.parentElement;
         if (parent) {
           const parentRect = parent.getBoundingClientRect();
-          const pointPx = (toX(nearest.paragraph, minP, maxP) / WIDTH) * rect.width;
+          const pointPx =
+            (toX(nearest.paragraph, minP, maxP) / WIDTH) * rect.width;
           const pointPy = (toY(nearest.tension) / HEIGHT) * rect.height;
           setTooltipPixel({
             x: rect.left - parentRect.left + pointPx,
@@ -124,7 +192,7 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         }
       }
     },
-    [data, minP, maxP]
+    [visibleData, minP, maxP]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -132,6 +200,15 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
     setHovered(null);
     setTooltipPixel(null);
   }, []);
+
+  function toggleType(type: string) {
+    setHiddenTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) next.delete(type);
+      else next.add(type);
+      return next;
+    });
+  }
 
   if (data.length === 0) {
     return (
@@ -142,6 +219,7 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
   }
 
   const yTicks = [0, 2, 4, 6, 8, 10];
+  const allTypes = ["action", "dialogue", "description"] as const;
 
   return (
     <div className="relative">
@@ -154,6 +232,17 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
+        {/* Title */}
+        <text
+          x={WIDTH / 2}
+          y={16}
+          textAnchor="middle"
+          className="fill-text font-semibold"
+          fontSize="13"
+        >
+          段落张力走势
+        </text>
+
         {/* Y-axis grid lines and labels */}
         {yTicks.map((t) => {
           const y = toY(t);
@@ -182,9 +271,13 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
 
         {/* X-axis paragraph ticks */}
         {data
-          .filter((d) => d.paragraph % tickInterval === 0 || d.paragraph === minP || d.paragraph === maxP)
+          .filter(
+            (d) =>
+              d.paragraph % tickInterval === 0 ||
+              d.paragraph === minP ||
+              d.paragraph === maxP
+          )
           .filter((d, i, arr) => {
-            // Deduplicate: if first/last already covered by interval, don't repeat
             const prev = arr[i - 1];
             return !prev || d.paragraph !== prev.paragraph;
           })
@@ -251,20 +344,40 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
           </linearGradient>
         </defs>
 
-        {/* Tension line */}
+        {/* Type-specific tension lines */}
+        {allTypes.map((type) => {
+          const typeSegments = segments.filter((s) => s.type === type);
+          if (typeSegments.length === 0 || hiddenTypes.has(type)) return null;
+          return typeSegments.map((seg, i) => (
+            <path
+              key={`${type}-${i}`}
+              d={seg.path}
+              fill="none"
+              stroke={TYPE_COLORS[type]}
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              data-type={type}
+              className="pacing-line"
+            />
+          ));
+        })}
+
+        {/* Trend dashed line */}
         <path
-          ref={lineRef}
-          d={linePath}
+          d={trendPath}
           fill="none"
-          stroke="#1E40AF"
-          strokeWidth="2"
+          stroke="#9CA3AF"
+          strokeWidth="1.5"
+          strokeDasharray="6,4"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="pacing-line"
+          className="trend-line"
         />
 
         {/* Data points — color by type */}
         {data.map((d) => {
+          if (hiddenTypes.has(d.type)) return null;
           const cx = toX(d.paragraph, minP, maxP);
           const cy = toY(d.tension);
           const isHovered = hovered?.paragraph === d.paragraph;
@@ -278,6 +391,7 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
               stroke="white"
               strokeWidth={isHovered ? 2.5 : 2}
               data-paragraph={d.paragraph}
+              data-type={d.type}
               className="cursor-pointer pacing-dot"
               style={{ transition: "r 0.15s ease, stroke-width 0.15s ease" }}
             />
@@ -285,7 +399,7 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         })}
       </svg>
 
-      {/* Tooltip — positioned in pixel space relative to parent */}
+      {/* Tooltip */}
       {hovered && tooltipPixel && (
         <div
           className="absolute z-10 px-3 py-2 bg-surface border border-border rounded-md shadow-sm text-xs pointer-events-none"
@@ -304,17 +418,28 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         </div>
       )}
 
-      {/* Legend */}
+      {/* Legend — line segments, clickable */}
       <div className="flex items-center justify-center gap-4 mt-4">
-        {(["action", "dialogue", "description"] as const).map((type) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <span
-              className="inline-block w-3 h-3 rounded-full"
-              style={{ backgroundColor: TYPE_COLORS[type] }}
-            />
-            <span className="text-xs text-text-muted">{TYPE_LABELS[type]}</span>
-          </div>
-        ))}
+        {allTypes.map((type) => {
+          const hidden = hiddenTypes.has(type);
+          return (
+            <button
+              key={type}
+              onClick={() => toggleType(type)}
+              className={`flex items-center gap-1.5 transition-opacity ${hidden ? "opacity-30" : "opacity-100"}`}
+              aria-pressed={!hidden}
+              aria-label={`${hidden ? "显示" : "隐藏"}${TYPE_LABELS[type]}线`}
+            >
+              <span
+                className="inline-block w-5 h-0.5 rounded"
+                style={{ backgroundColor: TYPE_COLORS[type] }}
+              />
+              <span className="text-xs text-text-muted">
+                {TYPE_LABELS[type]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Line animation style */}
@@ -322,12 +447,20 @@ export function PacingCurve({ data }: { data: PacingCurvePoint[] }) {
         .pacing-line {
           animation: pacing-draw 1s ease-out forwards;
         }
+        .trend-line {
+          animation: trend-draw 1s ease-out forwards;
+        }
         .pacing-dot:hover {
           r: ${radius * 1.5};
           stroke-width: 2.5;
           transition: r 0.15s ease, stroke-width 0.15s ease;
         }
         @keyframes pacing-draw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        @keyframes trend-draw {
           to {
             stroke-dashoffset: 0;
           }

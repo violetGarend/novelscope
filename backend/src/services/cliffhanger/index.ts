@@ -59,7 +59,8 @@ export function analyzeCliffhanger(text: string): CliffhangerResult {
     };
   }
 
-  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
+  const normalized = text.replace(/\r\n/g, "\n");
+  const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
     return {
       score: 0,

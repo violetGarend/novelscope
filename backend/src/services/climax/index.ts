@@ -56,7 +56,7 @@ function matchKeywordsByCategory(text: string): Record<string, string[]> {
 
 function countDialogueLines(text: string): number {
   const lines = text.split(/[\n\r]+/);
-  return lines.filter((line) => /[「」""''「」]/.test(line) || /^[""]/.test(line.trim())).length;
+  return lines.filter((line) => /[“”‘’「」『』]/.test(line) || /^[""“”]/.test(line.trim())).length;
 }
 
 function getConflictKeywords(): string[] {

@@ -18,6 +18,7 @@
 | 14 | [Hook + Cliffhanger 规则引擎兜底](014-hook-cliffhanger-rule-engine.md) | AFK | — | ✅ 完成 |
 | 15 | [四维雷达图替换综合分](015-radar-chart-replace-overall.md) | AFK | #14 | ✅ 完成 |
 | 16 | [报告信息架构重排](016-report-architecture-reorder.md) | AFK | #15 | ✅ 完成 |
+| 17 | [节奏曲线三线重设计 + 图例交互](017-pacing-curve-redesign.md) | AFK | #9 | ✅ 完成 |
 
 **并行路径：**
 ```
@@ -36,7 +37,7 @@ LLM 启用阶段（新增）:
 #14 Hook+Cliffhanger 兜底 ── #15 四维雷达图 ── #16 报告架构重排
 ```
 
-**当前进度：** 281 个测试通过（后端 158 + 前端 123），#1-#16 全部完成，P0 阶段交付完毕。
+**当前进度：** 289 个测试通过（后端 158 + 前端 131），#1-#17 全部完成，P0 阶段交付完毕。
 
 ## P0 完成里程碑
 

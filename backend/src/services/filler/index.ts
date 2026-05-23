@@ -43,7 +43,8 @@ export function detectFiller(text: string): FillerResult {
     return { items: [], suspiciousPairs: [] };
   }
 
-  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
+  const normalized = text.replace(/\r\n/g, "\n");
+  const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length < 2) {
     return { items: [], suspiciousPairs: [] };
   }
