@@ -9,6 +9,8 @@ import { createEvaluationPipeline } from "@/services/pipeline";
 import { analyzeClimax } from "@/services/climax";
 import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
+import { analyzeHook } from "@/services/hook";
+import { analyzeCliffhanger } from "@/services/cliffhanger";
 import { createLLMClient } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
 import {
@@ -93,6 +95,8 @@ async function main() {
     analyzeClimax,
     analyzePacing,
     detectFiller,
+    analyzeHook,
+    analyzeCliffhanger,
     evaluateWithLLM: async (chapterText: string, prompt: string): Promise<LLMCallResult> => {
       if (!apiKey || apiKey.trim() === "") {
         // Mock mode
@@ -104,7 +108,9 @@ async function main() {
             pacingScore: 5,
             consistencyIssues: [],
             highlights: ["（dry-run: LLM 评估未启用）"],
-            suggestions: ["设置 DEEPSEEK_API_KEY 环境变量以启用完整评估"],
+            suggestions: [
+              { severity: "info", location: "", issue: "设置 DEEPSEEK_API_KEY 环境变量以启用完整评估", direction: "在 backend/.env 中设置" },
+            ],
           },
           usage: { promptTokens: 0, completionTokens: 0 },
         };

@@ -15,6 +15,9 @@
 | 11 | [Token 用量 + 成本追踪](011-token-cost-tracking.md) | AFK | — | ✅ 完成 |
 | 12 | [Golden Sample 验证](012-golden-sample-validation.md) | AFK | — | ✅ 完成 |
 | 13 | [LLM 进度条细化 + 超时](013-llm-progress-timeout.md) | AFK | #12 | ✅ 完成 |
+| 14 | [Hook + Cliffhanger 规则引擎兜底](014-hook-cliffhanger-rule-engine.md) | AFK | — | ✅ 完成 |
+| 15 | [四维雷达图替换综合分](015-radar-chart-replace-overall.md) | AFK | #14 | ✅ 完成 |
+| 16 | [报告信息架构重排](016-report-architecture-reorder.md) | AFK | #15 | ✅ 完成 |
 
 **并行路径：**
 ```
@@ -28,6 +31,9 @@ LLM 启用阶段（新增）:
 #11 成本追踪 ──┐
                ├── #13 进度条细化+超时
 #12 Golden Sample┘
+
+评分规则重构阶段（新增）:
+#14 Hook+Cliffhanger 兜底 ── #15 四维雷达图 ── #16 报告架构重排
 ```
 
-**当前进度：** 234 个测试通过（后端 133 + 前端 101），#1-#13 全部完成。P0 阶段已完整交付。
+**当前进度：** 281 个测试通过（后端 158 + 前端 123），#1-#16 全部完成。

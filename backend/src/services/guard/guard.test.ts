@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { guardScores, checkVariance, type RawScores, type ValidatedScores } from "./index";
+import { guardScores, checkVariance, type RawScores } from "./index";
 
 describe("ConsistencyGuard", () => {
   describe("score clamping", () => {
@@ -45,7 +45,7 @@ describe("ConsistencyGuard", () => {
       expect(result.pacingScore).toBe(0);
     });
 
-    it("should round overall score to 1 decimal place", () => {
+    it("should not return overallScore", () => {
       const raw: RawScores = {
         hookScore: 7,
         climaxScore: 8,
@@ -53,9 +53,13 @@ describe("ConsistencyGuard", () => {
         pacingScore: 5,
       };
       const result = guardScores(raw);
-      // 7*0.3 + 8*0.3 + 6*0.25 + 5*0.15 = 2.1 + 2.4 + 1.5 + 0.75 = 6.75 → 6.8
-      expect(result.overallScore).toBe(6.8);
-      expect(Number.isInteger(result.overallScore * 10)).toBe(true);
+      expect(result).not.toHaveProperty("overallScore");
+      expect(Object.keys(result).sort()).toEqual([
+        "cliffhangerScore",
+        "climaxScore",
+        "hookScore",
+        "pacingScore",
+      ]);
     });
 
     it("should handle boundary scores (0 and 10)", () => {

@@ -5,11 +5,15 @@ import type { PacingResult } from "../pacing";
 import type { FillerResult } from "../filler";
 import type { LLMResult } from "../llm";
 import type { LLMCallResult } from "../llm/client";
+import type { HookResult } from "../hook";
+import type { CliffhangerResult } from "../cliffhanger";
 
 // Mock dependencies
 const mockAnalyzeClimax = jest.fn<(text: string) => ClimaxResult>();
 const mockAnalyzePacing = jest.fn<(text: string) => PacingResult>();
 const mockDetectFiller = jest.fn<(text: string) => FillerResult>();
+const mockAnalyzeHook = jest.fn<(text: string) => HookResult>();
+const mockAnalyzeCliffhanger = jest.fn<(text: string) => CliffhangerResult>();
 const mockEvaluateWithLLM = jest.fn<(text: string, prompt: string) => Promise<LLMCallResult>>();
 
 function wrapLLMResult(result: LLMResult, usage?: { promptTokens: number; completionTokens: number }): LLMCallResult {
@@ -36,12 +40,31 @@ const MOCK_PACING_RESULT: PacingResult = {
 
 const MOCK_FILLER_RESULT: FillerResult = { items: [], suspiciousPairs: [] };
 
+const MOCK_HOOK_RESULT: HookResult = {
+  score: 6,
+  openingType: "conflict",
+  hasQuestion: false,
+  hasGoldenLine: false,
+  conflictHitCount: 3,
+  suspenseHitCount: 1,
+};
+
+const MOCK_CLIFFHANGER_RESULT: CliffhangerResult = {
+  score: 5,
+  endingType: "suspense",
+  hasQuestion: false,
+  hasReversalHint: false,
+  suspenseHitCount: 2,
+};
+
 describe("EvaluationPipeline", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAnalyzeClimax.mockReturnValue(MOCK_CLIMAX_RESULT);
     mockAnalyzePacing.mockReturnValue(MOCK_PACING_RESULT);
     mockDetectFiller.mockReturnValue(MOCK_FILLER_RESULT);
+    mockAnalyzeHook.mockReturnValue(MOCK_HOOK_RESULT);
+    mockAnalyzeCliffhanger.mockReturnValue(MOCK_CLIFFHANGER_RESULT);
   });
 
   it("should use LLM scores when LLM succeeds (signal injection architecture)", async () => {
@@ -60,6 +83,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -91,6 +116,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -112,6 +139,8 @@ describe("EvaluationPipeline", () => {
     mockAnalyzeClimax.mockImplementation(() => { callOrder.push("climax"); return MOCK_CLIMAX_RESULT; });
     mockAnalyzePacing.mockImplementation(() => { callOrder.push("pacing"); return MOCK_PACING_RESULT; });
     mockDetectFiller.mockImplementation(() => { callOrder.push("filler"); return MOCK_FILLER_RESULT; });
+    mockAnalyzeHook.mockImplementation(() => { callOrder.push("hook"); return MOCK_HOOK_RESULT; });
+    mockAnalyzeCliffhanger.mockImplementation(() => { callOrder.push("cliffhanger"); return MOCK_CLIFFHANGER_RESULT; });
     mockEvaluateWithLLM.mockImplementation(async () => {
       callOrder.push("llm");
       return wrapLLMResult({
@@ -124,6 +153,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -131,7 +162,7 @@ describe("EvaluationPipeline", () => {
     await pipeline.evaluateChapter("测试文本");
 
     // Assert — 规则引擎先于 LLM 执行
-    expect(callOrder).toEqual(["climax", "pacing", "filler", "llm"]);
+    expect(callOrder).toEqual(["climax", "pacing", "filler", "hook", "cliffhanger", "llm"]);
   });
 
   it("should fallback to rule engine scores when LLM fails", async () => {
@@ -142,6 +173,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -153,6 +186,59 @@ describe("EvaluationPipeline", () => {
     expect(result.llmResult).toBeNull();
     expect(result.scores.climaxScore).toBe(8); // from rule engine
     expect(result.scores.pacingScore).toBe(7); // from rule engine
+    expect(result.scores.hookScore).toBe(6); // from hook rule engine (no longer 0)
+    expect(result.scores.cliffhangerScore).toBe(5); // from cliffhanger rule engine (no longer 0)
+    expect(result.hookSource).toBe("rule");
+    expect(result.cliffhangerSource).toBe("rule");
+  });
+
+  it("should mark hookSource/cliffhangerSource as llm when LLM succeeds", async () => {
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
+      hookScore: 9,
+      climaxScore: 8,
+      cliffhangerScore: 8,
+      pacingScore: 7,
+      consistencyIssues: [],
+      highlights: [],
+      suggestions: [],
+    }));
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    const result = await pipeline.evaluateChapter("测试文本");
+
+    expect(result.hookSource).toBe("llm");
+    expect(result.cliffhangerSource).toBe("llm");
+    expect(result.scores.hookScore).toBe(9);
+    expect(result.scores.cliffhangerScore).toBe(8);
+  });
+
+  it("should include hook and cliffhanger rule engine results in output", async () => {
+    mockEvaluateWithLLM.mockResolvedValue(wrapLLMResult({
+      hookScore: 6, climaxScore: 6, cliffhangerScore: 6, pacingScore: 6,
+      consistencyIssues: [], highlights: [], suggestions: [],
+    }));
+
+    const pipeline = createEvaluationPipeline({
+      analyzeClimax: mockAnalyzeClimax,
+      analyzePacing: mockAnalyzePacing,
+      detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
+      evaluateWithLLM: mockEvaluateWithLLM,
+    });
+
+    const result = await pipeline.evaluateChapter("测试文本");
+
+    expect(result.hookResult).toBe(MOCK_HOOK_RESULT);
+    expect(result.cliffhangerResult).toBe(MOCK_CLIFFHANGER_RESULT);
   });
 
   describe("onProgress callback", () => {
@@ -168,6 +254,8 @@ describe("EvaluationPipeline", () => {
           analyzeClimax: mockAnalyzeClimax,
           analyzePacing: mockAnalyzePacing,
           detectFiller: mockDetectFiller,
+          analyzeHook: mockAnalyzeHook,
+          analyzeCliffhanger: mockAnalyzeCliffhanger,
           evaluateWithLLM: mockEvaluateWithLLM,
         },
         {
@@ -198,6 +286,8 @@ describe("EvaluationPipeline", () => {
           analyzeClimax: mockAnalyzeClimax,
           analyzePacing: mockAnalyzePacing,
           detectFiller: mockDetectFiller,
+          analyzeHook: mockAnalyzeHook,
+          analyzeCliffhanger: mockAnalyzeCliffhanger,
           evaluateWithLLM: mockEvaluateWithLLM,
         },
         {
@@ -224,6 +314,8 @@ describe("EvaluationPipeline", () => {
         analyzeClimax: mockAnalyzeClimax,
         analyzePacing: mockAnalyzePacing,
         detectFiller: mockDetectFiller,
+        analyzeHook: mockAnalyzeHook,
+        analyzeCliffhanger: mockAnalyzeCliffhanger,
         evaluateWithLLM: mockEvaluateWithLLM,
       });
 
@@ -242,6 +334,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -264,6 +358,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 
@@ -279,6 +375,8 @@ describe("EvaluationPipeline", () => {
       analyzeClimax: mockAnalyzeClimax,
       analyzePacing: mockAnalyzePacing,
       detectFiller: mockDetectFiller,
+      analyzeHook: mockAnalyzeHook,
+      analyzeCliffhanger: mockAnalyzeCliffhanger,
       evaluateWithLLM: mockEvaluateWithLLM,
     });
 

@@ -77,7 +77,6 @@ describe("EvaluatePage", () => {
       type: "result",
       reportId: "test_1",
       scores: {
-        overallScore: 7.2,
         hookScore: 8,
         climaxScore: 7,
         cliffhangerScore: 6,
@@ -104,7 +103,9 @@ describe("EvaluatePage", () => {
         pacingScore: 5,
         consistencyIssues: [],
         highlights: ["开头冲突感强"],
-        suggestions: ["中间段落可以更紧凑"],
+        suggestions: [
+          { severity: "warning", location: "中段", issue: "中间段落可以更紧凑", direction: "减少重复" },
+        ],
       },
       isPartial: false,
     };
@@ -136,7 +137,7 @@ describe("EvaluatePage", () => {
     await waitFor(() => {
       expect(screen.getByText("评估报告")).toBeInTheDocument();
     });
-    expect(screen.getByText("7.2")).toBeInTheDocument();
+    expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
     expect(screen.getByText("亮点分析")).toBeInTheDocument();
     expect(screen.getByText("开头冲突感强")).toBeInTheDocument();
   });

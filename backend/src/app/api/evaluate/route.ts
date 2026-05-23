@@ -4,6 +4,8 @@ import { createEvaluationPipeline } from "@/services/pipeline";
 import { analyzeClimax } from "@/services/climax";
 import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
+import { analyzeHook } from "@/services/hook";
+import { analyzeCliffhanger } from "@/services/cliffhanger";
 import { createLLMClient } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
 import { calculateCost } from "@/lib/cost";
@@ -17,6 +19,8 @@ const pipeline = createEvaluationPipeline({
   analyzeClimax,
   analyzePacing,
   detectFiller,
+  analyzeHook,
+  analyzeCliffhanger,
   evaluateWithLLM: async (chapterText: string, prompt: string): Promise<LLMCallResult> => {
     // P0 阶段：如果没有 API key，返回 mock 数据
     const apiKey = process.env.DEEPSEEK_API_KEY;
@@ -29,7 +33,9 @@ const pipeline = createEvaluationPipeline({
           pacingScore: 5,
           consistencyIssues: [],
           highlights: ["（P0 阶段：LLM 评估未启用）"],
-          suggestions: ["建议配置 DEEPSEEK_API_KEY 以启用完整评估"],
+          suggestions: [
+          { severity: "info", location: "", issue: "建议配置 DEEPSEEK_API_KEY 以启用完整评估", direction: "在 backend/.env 中设置环境变量" },
+        ],
         },
         usage: { promptTokens: 0, completionTokens: 0 },
       };
@@ -65,8 +71,12 @@ export async function POST(request: Request) {
       climaxResult: result.climaxResult,
       pacingResult: result.pacingResult,
       fillerResult: result.fillerResult,
+      hookResult: result.hookResult,
+      cliffhangerResult: result.cliffhangerResult,
       llmResult: result.llmResult,
       isPartial: result.isPartial,
+      hookSource: result.hookSource,
+      cliffhangerSource: result.cliffhangerSource,
       tokenUsage,
       costEstimate,
     }, { headers: CORS_HEADERS });

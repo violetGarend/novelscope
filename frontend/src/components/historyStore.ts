@@ -7,7 +7,6 @@ export interface HistoryEntry {
   id: string;
   timestamp: number;
   reportId: string;
-  overallScore: number;
   textSummary: string;
   fullReport?: EvaluationReport;
 }

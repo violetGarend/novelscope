@@ -37,7 +37,6 @@ export interface VarianceReport {
   climaxScore: number;
   cliffhangerScore: number;
   pacingScore: number;
-  overallScore: number;
 }
 
 export interface ExpectedRangeCheck {
@@ -109,14 +108,12 @@ function computeVarianceReport(rounds: RoundResult[]): VarianceReport {
   const cV = checkVariance(extract((s) => s.climaxScore));
   const chV = checkVariance(extract((s) => s.cliffhangerScore));
   const pV = checkVariance(extract((s) => s.pacingScore));
-  const oV = checkVariance(extract((s) => s.overallScore));
 
   return {
     hookScore: hV.variance,
     climaxScore: cV.variance,
     cliffhangerScore: chV.variance,
     pacingScore: pV.variance,
-    overallScore: oV.variance,
   };
 }
 
@@ -191,7 +188,6 @@ export function createGoldenSampleRunner(
             climaxScore: 0,
             cliffhangerScore: 0,
             pacingScore: 0,
-            overallScore: 0,
           };
         }
 
@@ -275,11 +271,11 @@ export function createGoldenSampleRunner(
 
 function formatScoreTable(rounds: RoundResult[]): string {
   const header =
-    "| 轮次 | Hook | 高潮 | 悬念 | 节奏 | 综合 | LLM | 耗时 |\n" +
-    "|------|------|------|------|------|------|-----|------|";
+    "| 轮次 | Hook | 高潮 | 悬念 | 节奏 | LLM | 耗时 |\n" +
+    "|------|------|------|------|------|-----|------|";
   const rows = rounds.map((r) => {
     const status = r.llmAvailable ? "✓" : "✗";
-    return `| R${r.round} | ${r.scores.hookScore} | ${r.scores.climaxScore} | ${r.scores.cliffhangerScore} | ${r.scores.pacingScore} | ${r.scores.overallScore} | ${status} | ${r.durationMs}ms |`;
+    return `| R${r.round} | ${r.scores.hookScore} | ${r.scores.climaxScore} | ${r.scores.cliffhangerScore} | ${r.scores.pacingScore} | ${status} | ${r.durationMs}ms |`;
   });
   return [header, ...rows].join("\n");
 }
@@ -291,8 +287,7 @@ function formatVarianceTable(v: VarianceReport): string {
     `| Hook | ${v.hookScore} | ${v.hookScore < 0.5 ? "✓" : "✗"} |\n` +
     `| 高潮 | ${v.climaxScore} | ${v.climaxScore < 0.5 ? "✓" : "✗"} |\n` +
     `| 悬念 | ${v.cliffhangerScore} | ${v.cliffhangerScore < 0.5 ? "✓" : "✗"} |\n` +
-    `| 节奏 | ${v.pacingScore} | ${v.pacingScore < 0.5 ? "✓" : "✗"} |\n` +
-    `| 综合 | ${v.overallScore} | ${v.overallScore < 0.5 ? "✓" : "✗"} |`
+    `| 节奏 | ${v.pacingScore} | ${v.pacingScore < 0.5 ? "✓" : "✗"} |`
   );
 }
 

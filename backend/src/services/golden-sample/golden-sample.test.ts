@@ -20,7 +20,6 @@ function makeValidatedScores(overrides?: Partial<ValidatedScores>): ValidatedSco
     climaxScore: overrides?.climaxScore ?? 7,
     cliffhangerScore: overrides?.cliffhangerScore ?? 7,
     pacingScore: overrides?.pacingScore ?? 7,
-    overallScore: overrides?.overallScore ?? 7,
   };
 }
 
@@ -46,6 +45,8 @@ function makeMockEvalResult(scores: ValidatedScores, isPartial = false): EvalRes
       typeRatio: { action: 0, dialogue: 0, description: 0 },
     },
     fillerResult: { items: [], suspiciousPairs: [] },
+    hookResult: { score: scores.hookScore, openingType: "description", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 0, suspenseHitCount: 0 },
+    cliffhangerResult: { score: scores.cliffhangerScore, endingType: "flat", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 0 },
     llmResult: isPartial
       ? null
       : {
@@ -62,6 +63,8 @@ function makeMockEvalResult(scores: ValidatedScores, isPartial = false): EvalRes
     tokenUsage: isPartial
       ? null
       : { promptTokens: 500, completionTokens: 100 },
+    hookSource: isPartial ? "rule" as const : "llm" as const,
+    cliffhangerSource: isPartial ? "rule" as const : "llm" as const,
   };
 }
 
@@ -176,9 +179,9 @@ describe("createGoldenSampleRunner", () => {
   describe("variance computation", () => {
     it("should compute variance for all score dimensions", async () => {
       const scores = [
-        makeValidatedScores({ hookScore: 6, climaxScore: 7, cliffhangerScore: 8, pacingScore: 5, overallScore: 6 }),
-        makeValidatedScores({ hookScore: 7, climaxScore: 8, cliffhangerScore: 7, pacingScore: 6, overallScore: 7 }),
-        makeValidatedScores({ hookScore: 8, climaxScore: 9, cliffhangerScore: 6, pacingScore: 7, overallScore: 8 }),
+        makeValidatedScores({ hookScore: 6, climaxScore: 7, cliffhangerScore: 8, pacingScore: 5 }),
+        makeValidatedScores({ hookScore: 7, climaxScore: 8, cliffhangerScore: 7, pacingScore: 6 }),
+        makeValidatedScores({ hookScore: 8, climaxScore: 9, cliffhangerScore: 6, pacingScore: 7 }),
       ];
 
       mockEvaluateChapter
@@ -193,15 +196,14 @@ describe("createGoldenSampleRunner", () => {
       expect(result.variance.climaxScore).toBeGreaterThan(0);
       expect(result.variance.cliffhangerScore).toBeGreaterThan(0);
       expect(result.variance.pacingScore).toBeGreaterThan(0);
-      expect(result.variance.overallScore).toBeGreaterThan(0);
     });
 
     it("should pass stability when all variances < 0.5", async () => {
       // Very close scores → low variance
       const scores = [
-        makeValidatedScores({ hookScore: 7.0, climaxScore: 7.0, cliffhangerScore: 7.0, pacingScore: 7.0, overallScore: 7.0 }),
-        makeValidatedScores({ hookScore: 7.1, climaxScore: 7.1, cliffhangerScore: 7.1, pacingScore: 7.1, overallScore: 7.1 }),
-        makeValidatedScores({ hookScore: 7.2, climaxScore: 7.2, cliffhangerScore: 7.2, pacingScore: 7.2, overallScore: 7.2 }),
+        makeValidatedScores({ hookScore: 7.0, climaxScore: 7.0, cliffhangerScore: 7.0, pacingScore: 7.0 }),
+        makeValidatedScores({ hookScore: 7.1, climaxScore: 7.1, cliffhangerScore: 7.1, pacingScore: 7.1 }),
+        makeValidatedScores({ hookScore: 7.2, climaxScore: 7.2, cliffhangerScore: 7.2, pacingScore: 7.2 }),
       ];
 
       mockEvaluateChapter
@@ -218,9 +220,9 @@ describe("createGoldenSampleRunner", () => {
     it("should fail stability when any variance >= 0.5", async () => {
       // Widely varying scores
       const scores = [
-        makeValidatedScores({ hookScore: 3, climaxScore: 3, cliffhangerScore: 3, pacingScore: 3, overallScore: 3 }),
-        makeValidatedScores({ hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7, overallScore: 7 }),
-        makeValidatedScores({ hookScore: 9, climaxScore: 9, cliffhangerScore: 9, pacingScore: 9, overallScore: 9 }),
+        makeValidatedScores({ hookScore: 3, climaxScore: 3, cliffhangerScore: 3, pacingScore: 3 }),
+        makeValidatedScores({ hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7 }),
+        makeValidatedScores({ hookScore: 9, climaxScore: 9, cliffhangerScore: 9, pacingScore: 9 }),
       ];
 
       mockEvaluateChapter
@@ -235,7 +237,7 @@ describe("createGoldenSampleRunner", () => {
     });
 
     it("should compute zero variance for identical scores", async () => {
-      const sameScores = makeValidatedScores({ hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7, overallScore: 7 });
+      const sameScores = makeValidatedScores({ hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7 });
       mockEvaluateChapter.mockResolvedValue(makeMockEvalResult(sameScores));
 
       const runner = createRunner();
@@ -245,7 +247,6 @@ describe("createGoldenSampleRunner", () => {
       expect(result.variance.climaxScore).toBe(0);
       expect(result.variance.cliffhangerScore).toBe(0);
       expect(result.variance.pacingScore).toBe(0);
-      expect(result.variance.overallScore).toBe(0);
       expect(result.stabilityPass).toBe(true);
     });
 
@@ -440,8 +441,8 @@ describe("createGoldenSampleRunner", () => {
     it("should not crash when one round fails but others succeed", async () => {
       mockEvaluateChapter
         .mockRejectedValueOnce(new Error("Round 1 failed"))
-        .mockResolvedValueOnce(makeMockEvalResult(makeValidatedScores({ hookScore: 8, climaxScore: 8, cliffhangerScore: 8, pacingScore: 8, overallScore: 8 })))
-        .mockResolvedValueOnce(makeMockEvalResult(makeValidatedScores({ hookScore: 8, climaxScore: 8, cliffhangerScore: 8, pacingScore: 8, overallScore: 8 })));
+        .mockResolvedValueOnce(makeMockEvalResult(makeValidatedScores({ hookScore: 8, climaxScore: 8, cliffhangerScore: 8, pacingScore: 8 })))
+        .mockResolvedValueOnce(makeMockEvalResult(makeValidatedScores({ hookScore: 8, climaxScore: 8, cliffhangerScore: 8, pacingScore: 8 })));
 
       const runner = createRunner();
       const result = await runner.validateSample(sample);
@@ -500,7 +501,6 @@ describe("generateMarkdownReport", () => {
         climaxScore: 0,
         cliffhangerScore: 0,
         pacingScore: 0,
-        overallScore: 0,
       },
       stabilityPass: overrides?.stabilityPass ?? true,
       expectedRangeCheck: {

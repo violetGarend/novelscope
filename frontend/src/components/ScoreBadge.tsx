@@ -1,6 +1,7 @@
 interface ScoreBadgeProps {
   score: number;
   label?: string;
+  source?: "llm" | "rule";
 }
 
 function scoreColor(score: number): string {
@@ -9,9 +10,10 @@ function scoreColor(score: number): string {
   return "text-score-low";
 }
 
-export function ScoreBadge({ score, label }: ScoreBadgeProps) {
+export function ScoreBadge({ score, label, source }: ScoreBadgeProps) {
   const display = Number.isInteger(score) ? score.toString() : score.toFixed(1);
   const colorClass = scoreColor(score);
+  const isRuleFallback = source === "rule";
 
   return (
     <div className="flex flex-col items-center">
@@ -20,6 +22,14 @@ export function ScoreBadge({ score, label }: ScoreBadgeProps) {
       </span>
       {label && (
         <span className="mt-1 text-xs text-text-muted">{label}</span>
+      )}
+      {isRuleFallback && (
+        <span
+          className="mt-0.5 text-[10px] text-warning bg-warning-bg px-1.5 py-0.5 rounded"
+          title="AI 深度分析未完成，当前为规则引擎参考分"
+        >
+          参考分
+        </span>
       )}
     </div>
   );

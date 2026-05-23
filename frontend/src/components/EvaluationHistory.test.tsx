@@ -8,7 +8,6 @@ const SAMPLE_ENTRY: HistoryEntry = {
   id: "entry_1",
   timestamp: 1700000000000,
   reportId: "report_test_001",
-  overallScore: 7.2,
   textSummary: "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。",
 };
 
@@ -27,7 +26,7 @@ describe("evaluationHistory (localStorage)", () => {
     const entries = loadHistory();
     expect(entries).toHaveLength(1);
     expect(entries[0].id).toBe("entry_1");
-    expect(entries[0].overallScore).toBe(7.2);
+    expect(entries[0].textSummary).toBe(SAMPLE_ENTRY.textSummary);
   });
 
   it("should trim to max 10 entries (FIFO)", () => {
@@ -55,16 +54,15 @@ describe("evaluationHistory (localStorage)", () => {
   });
 
   it("should deduplicate by reportId (replace existing)", () => {
-    saveEvaluation({ ...SAMPLE_ENTRY, id: "first", reportId: "dup", overallScore: 5.0 });
-    saveEvaluation({ ...SAMPLE_ENTRY, id: "second", reportId: "dup", overallScore: 8.0 });
+    saveEvaluation({ ...SAMPLE_ENTRY, id: "first", reportId: "dup" });
+    saveEvaluation({ ...SAMPLE_ENTRY, id: "second", reportId: "dup" });
     const entries = loadHistory();
     expect(entries).toHaveLength(1);
     expect(entries[0].id).toBe("second");
-    expect(entries[0].overallScore).toBe(8.0);
   });
 
   it("should persist and retrieve fullReport", () => {
-    const full = { reportId: "rpt", scores: { overallScore: 9.0 }, isPartial: false } as unknown as HistoryEntry["fullReport"];
+    const full = { reportId: "rpt", scores: { hookScore: 8, climaxScore: 7, cliffhangerScore: 9, pacingScore: 6 }, isPartial: false } as unknown as HistoryEntry["fullReport"];
     saveEvaluation({ ...SAMPLE_ENTRY, fullReport: full as HistoryEntry["fullReport"] });
     const entries = loadHistory();
     expect(entries[0].fullReport).toBeDefined();
@@ -87,11 +85,11 @@ describe("EvaluationHistory component", () => {
     expect(screen.getByText(/暂无评估历史/i)).toBeInTheDocument();
   });
 
-  it("should display saved entries with score and time", () => {
+  it("should display saved entries with text summary and time", () => {
     saveEvaluation(SAMPLE_ENTRY);
     render(<EvaluationHistory />);
-    expect(screen.getByText(/7.2/)).toBeInTheDocument();
     expect(screen.getByText(/一拳打出.*碾压对手/)).toBeInTheDocument();
+    expect(screen.getByText(/2023-11-15/)).toBeInTheDocument();
   });
 
   it("should call onSelect with entry when clicked", async () => {
@@ -100,7 +98,7 @@ describe("EvaluationHistory component", () => {
     saveEvaluation(SAMPLE_ENTRY);
     render(<EvaluationHistory onSelect={onSelect} />);
 
-    const entry = screen.getByText(/7.2/).closest("button");
+    const entry = screen.getByText(/一拳打出.*碾压对手/).closest("button");
     expect(entry).toBeInTheDocument();
     await user.click(entry!);
     expect(onSelect).toHaveBeenCalledWith(SAMPLE_ENTRY);

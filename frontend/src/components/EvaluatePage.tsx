@@ -82,7 +82,6 @@ export function EvaluatePage() {
                 id: `eval_${Date.now()}`,
                 timestamp: Date.now(),
                 reportId: report.reportId,
-                overallScore: report.scores.overallScore,
                 textSummary: text.slice(0, 100),
                 fullReport: report,
               });

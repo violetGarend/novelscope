@@ -76,7 +76,6 @@ model EvaluationReport {
   climaxDensity      Float
   cliffhangerScore   Float
   pacingScore        Float
-  overallScore       Float
   consistencyIssues  Json
   pacingCurve        Json
   fillerDetection    Json

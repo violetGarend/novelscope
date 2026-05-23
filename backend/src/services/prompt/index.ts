@@ -16,6 +16,12 @@ const EVALUATION_INSTRUCTION = `你是一位专业的中文网文质量评估专
 - cliffhangerScore（章末悬念）：结尾是否有钩子，是否让读者想继续看
 - pacingScore（节奏感）：段落类型多样性、张力变化、是否有注水
 
+改进建议请按严重度分级（critical=关键问题/必须修改，warning=建议优化，info=观察/小建议），每条建议需包含：
+- severity: 严重度
+- location: 问题定位（如"开头300字"、"中段对话"、"结尾章节"）
+- issue: 具体问题描述
+- direction: 可操作的具体改进方向
+
 请严格按以下 JSON 格式输出，不要输出其他内容：
 {
   "hookScore": <0-10>,
@@ -24,7 +30,10 @@ const EVALUATION_INSTRUCTION = `你是一位专业的中文网文质量评估专
   "pacingScore": <0-10>,
   "consistencyIssues": ["<问题1>", ...],
   "highlights": ["<亮点1>", ...],
-  "suggestions": ["<建议1>", ...]
+  "suggestions": [
+    { "severity": "critical|warning|info", "location": "<定位>", "issue": "<问题>", "direction": "<改进方向>" },
+    ...
+  ]
 }`;
 
 function formatClimaxSignal(climax: ClimaxResult): string {

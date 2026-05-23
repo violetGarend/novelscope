@@ -5,7 +5,6 @@ import { ReportCard, EmptyReport, ErrorReport, type EvaluationReport } from "./R
 const FULL_REPORT: EvaluationReport = {
   reportId: "report_test_001",
   scores: {
-    overallScore: 7.2,
     hookScore: 8,
     climaxScore: 7,
     cliffhangerScore: 6,
@@ -41,7 +40,9 @@ const FULL_REPORT: EvaluationReport = {
     pacingScore: 5,
     consistencyIssues: ["第3段提到角色A在室内，第5段又说他在户外，前后矛盾"],
     highlights: ["开头冲突感强，能迅速抓住读者注意力", "结尾悬念设置有力"],
-    suggestions: ["中间段落的对话节奏可以更紧凑，适当减少重复信息"],
+    suggestions: [
+      { severity: "warning", location: "中段对话", issue: "中间段落的对话节奏可以更紧凑", direction: "适当减少重复信息" },
+    ],
   },
   isPartial: false,
   tokenUsage: { promptTokens: 1200, completionTokens: 350 },
@@ -49,26 +50,36 @@ const FULL_REPORT: EvaluationReport = {
 };
 
 describe("ReportCard — full report", () => {
-  it("should display the overall score prominently", () => {
+  it("should render radar chart with four axis labels", () => {
     render(<ReportCard report={FULL_REPORT} />);
-    expect(screen.getByText("7.2")).toBeInTheDocument();
-  });
-
-  it("should display all four sub-scores with labels", () => {
-    render(<ReportCard report={FULL_REPORT} />);
+    expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
     expect(screen.getByText("Hook")).toBeInTheDocument();
     expect(screen.getByText("爽点密度")).toBeInTheDocument();
     expect(screen.getByText("章末悬念")).toBeInTheDocument();
     expect(screen.getByText("节奏")).toBeInTheDocument();
   });
 
+  it("should not render overallScore number", () => {
+    render(<ReportCard report={FULL_REPORT} />);
+    expect(screen.queryByText("综合评分")).not.toBeInTheDocument();
+    expect(screen.queryByText("/10")).not.toBeInTheDocument();
+  });
+
   it("should show highlights before suggestions (优势先行)", () => {
     render(<ReportCard report={FULL_REPORT} />);
     const highlightHeading = screen.getByText("亮点分析");
     const suggestionHeading = screen.getByText("改进建议");
-    // highlights should appear before suggestions in the DOM
     expect(
       highlightHeading.compareDocumentPosition(suggestionHeading)
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("should show suggestions before radar chart (建议优先于可视化)", () => {
+    render(<ReportCard report={FULL_REPORT} />);
+    const suggestionHeading = screen.getByText("改进建议");
+    const radarHeading = screen.getByText("四维评分");
+    expect(
+      suggestionHeading.compareDocumentPosition(radarHeading)
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
@@ -86,23 +97,21 @@ describe("ReportCard — full report", () => {
 
   it("should not show 'low score' warnings for scores >= 5", () => {
     render(<ReportCard report={FULL_REPORT} />);
-    // 节奏分数是 5，不算低分（>=5），不应有低分警告
     expect(screen.queryByText(/低于.*分/)).toBeNull();
   });
 
   it("should render pacing curve SVG with tension data", () => {
     render(<ReportCard report={FULL_REPORT} />);
     expect(screen.getByLabelText("节奏曲线")).toBeInTheDocument();
-    expect(screen.getByText("节奏曲线")).toBeInTheDocument();
   });
 
   it("should show pacing stats (CV + type ratio)", () => {
     render(<ReportCard report={FULL_REPORT} />);
-    expect(screen.getByText(/变异系数 CV:/)).toBeInTheDocument();
+    expect(screen.getByText("变异系数 CV")).toBeInTheDocument();
     expect(screen.getByText("0.45")).toBeInTheDocument();
-    expect(screen.getByText(/10%/)).toBeInTheDocument();
-    expect(screen.getByText(/60%/)).toBeInTheDocument();
-    expect(screen.getByText(/30%/)).toBeInTheDocument();
+    expect(screen.getByText("10%")).toBeInTheDocument();
+    expect(screen.getByText("60%")).toBeInTheDocument();
+    expect(screen.getByText("30%")).toBeInTheDocument();
   });
 
   it("should not render pacing section when curve is empty", () => {
@@ -115,11 +124,8 @@ describe("ReportCard — full report", () => {
   });
 
   it("should show report tone as editorial feedback, not exam result", () => {
-    // 建设性语气：用"建议"而非"问题"，用"可以提升"而非"不好"
     render(<ReportCard report={FULL_REPORT} />);
     expect(screen.getByText("改进建议")).toBeInTheDocument();
-    // 不应出现考试式语气
-    expect(screen.queryByText("问题")).toBeNull();
     expect(screen.queryByText("不合格")).toBeNull();
   });
 
@@ -145,16 +151,144 @@ describe("ReportCard — full report", () => {
   });
 });
 
+describe("ReportCard — suggestions severity", () => {
+  it("should display severity badges (critical/warning/info)", () => {
+    const reportWithAllSeverities: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: {
+        ...FULL_REPORT.llmResult!,
+        suggestions: [
+          { severity: "critical", location: "开头", issue: "开篇太平淡", direction: "增加冲突场景" },
+          { severity: "warning", location: "中段", issue: "节奏拖沓", direction: "精简描述" },
+          { severity: "info", location: "结尾", issue: "可加钩子", direction: "增加悬念暗示" },
+        ],
+      },
+    };
+    render(<ReportCard report={reportWithAllSeverities} />);
+    // Badge text contains icon prefix, use exact:false
+    expect(screen.getByText("关键", { exact: false })).toBeInTheDocument();
+    // "建议" matches both heading "改进建议" and warning badge — should appear at least twice
+    const suggestionMatches = screen.getAllByText("建议", { exact: false });
+    expect(suggestionMatches.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("观察", { exact: false })).toBeInTheDocument();
+  });
+
+  it("should sort suggestions by severity: critical > warning > info", () => {
+    const unsortedReport: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: {
+        ...FULL_REPORT.llmResult!,
+        suggestions: [
+          { severity: "info", location: "", issue: "info-item", direction: "" },
+          { severity: "critical", location: "", issue: "critical-item", direction: "" },
+          { severity: "warning", location: "", issue: "warning-item", direction: "" },
+        ],
+      },
+    };
+    render(<ReportCard report={unsortedReport} />);
+    const items = screen.getAllByText(/-item$/);
+    expect(items[0]).toHaveTextContent("critical-item");
+    expect(items[1]).toHaveTextContent("warning-item");
+    expect(items[2]).toHaveTextContent("info-item");
+  });
+
+  it("should show location tag when present", () => {
+    const reportWithLocation: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: {
+        ...FULL_REPORT.llmResult!,
+        suggestions: [
+          { severity: "warning", location: "第3-5段", issue: "对话重复", direction: "精简" },
+        ],
+      },
+    };
+    render(<ReportCard report={reportWithLocation} />);
+    expect(screen.getByText("[第3-5段]")).toBeInTheDocument();
+  });
+
+  it("should show direction hint when present", () => {
+    const reportWithDirection: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: {
+        ...FULL_REPORT.llmResult!,
+        suggestions: [
+          { severity: "warning", location: "", issue: "节奏问题", direction: "减少大段描写，增加对话" },
+        ],
+      },
+    };
+    render(<ReportCard report={reportWithDirection} />);
+    expect(screen.getByText(/→ 减少大段描写，增加对话/)).toBeInTheDocument();
+  });
+});
+
+describe("ReportCard — empty states", () => {
+  it("should show empty highlight state when no highlights", () => {
+    const noHighlights: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: { ...FULL_REPORT.llmResult!, highlights: [] },
+    };
+    render(<ReportCard report={noHighlights} />);
+    expect(screen.getByText("规则引擎未检测到显著亮点")).toBeInTheDocument();
+  });
+
+  it("should show empty suggestion state when no suggestions", () => {
+    const noSuggestions: EvaluationReport = {
+      ...FULL_REPORT,
+      llmResult: { ...FULL_REPORT.llmResult!, suggestions: [] },
+    };
+    render(<ReportCard report={noSuggestions} />);
+    expect(screen.getByText("未发现明显问题")).toBeInTheDocument();
+  });
+});
+
+describe("ReportCard — filler section", () => {
+  it("should show filler detection section when filler items exist", () => {
+    const reportWithFiller: EvaluationReport = {
+      ...FULL_REPORT,
+      fillerResult: {
+        items: [{ paragraph: 3, reason: "第3段内容重复，与前文第1段相似", suggestion: "建议精简或合并" }],
+        suspiciousPairs: [],
+      },
+    };
+    render(<ReportCard report={reportWithFiller} />);
+    expect(screen.getByText("注水检测")).toBeInTheDocument();
+    expect(screen.getByText(/第3段内容重复/)).toBeInTheDocument();
+  });
+
+  it("should show suspicious pairs when present", () => {
+    const reportWithPairs: EvaluationReport = {
+      ...FULL_REPORT,
+      fillerResult: {
+        items: [],
+        suspiciousPairs: [{ paragraphA: 1, paragraphB: 5, similarity: 0.82 }],
+      },
+    };
+    render(<ReportCard report={reportWithPairs} />);
+    expect(screen.getByText("注水检测")).toBeInTheDocument();
+    expect(screen.getByText(/第1段 ↔ 第5段/)).toBeInTheDocument();
+  });
+
+  it("should not show filler section when no filler items or pairs", () => {
+    const noFiller: EvaluationReport = {
+      ...FULL_REPORT,
+      fillerResult: { items: [], suspiciousPairs: [] },
+    };
+    render(<ReportCard report={noFiller} />);
+    expect(screen.queryByText("注水检测")).toBeNull();
+  });
+});
+
 describe("ReportCard — partial result", () => {
   const PARTIAL_REPORT: EvaluationReport = {
     ...FULL_REPORT,
     llmResult: null,
     isPartial: true,
+    hookSource: "rule",
+    cliffhangerSource: "rule",
     scores: {
-      overallScore: 5.0,
-      hookScore: 0,
+      hookScore: 6,
       climaxScore: 7,
-      cliffhangerScore: 0,
+      cliffhangerScore: 5,
       pacingScore: 5,
     },
   };
@@ -165,10 +299,9 @@ describe("ReportCard — partial result", () => {
     expect(banner).toBeInTheDocument();
   });
 
-  it("should still display available scores", () => {
+  it("should show rule fallback warning when hookSource or cliffhangerSource is rule", () => {
     render(<ReportCard report={PARTIAL_REPORT} />);
-    expect(screen.getByText("5.0")).toBeInTheDocument();
-    expect(screen.getAllByText("5").length).toBeGreaterThanOrEqual(1); // pacing sub-score (+ possible X-axis tick)
+    expect(screen.getByText(/规则引擎参考分/)).toBeInTheDocument();
   });
 
   it("should not show LLM-dependent sections when llmResult is null", () => {

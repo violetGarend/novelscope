@@ -41,7 +41,6 @@ describe("Prisma Schema", () => {
     expect(schema).toContain("climaxDensity");
     expect(schema).toContain("cliffhangerScore");
     expect(schema).toContain("pacingScore");
-    expect(schema).toContain("overallScore");
     expect(schema).toContain("consistencyIssues");
     expect(schema).toContain("pacingCurve");
     expect(schema).toContain("fillerDetection");

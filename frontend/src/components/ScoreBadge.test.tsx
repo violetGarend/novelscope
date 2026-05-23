@@ -48,4 +48,21 @@ describe("ScoreBadge", () => {
     const scoreEl = screen.getByText("9");
     expect(scoreEl.className).toContain("font-mono");
   });
+
+  it("should not show '参考分' badge when source is llm", () => {
+    render(<ScoreBadge score={8} label="Hook" source="llm" />);
+    expect(screen.queryByText("参考分")).not.toBeInTheDocument();
+  });
+
+  it("should not show '参考分' badge when source is undefined", () => {
+    render(<ScoreBadge score={8} label="Hook" />);
+    expect(screen.queryByText("参考分")).not.toBeInTheDocument();
+  });
+
+  it("should show '参考分' badge when source is rule", () => {
+    render(<ScoreBadge score={6} label="Hook" source="rule" />);
+    const badge = screen.getByText("参考分");
+    expect(badge).toBeInTheDocument();
+    expect(badge.title).toBe("AI 深度分析未完成，当前为规则引擎参考分");
+  });
 });

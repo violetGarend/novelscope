@@ -10,31 +10,18 @@ export interface ValidatedScores {
   climaxScore: number;
   cliffhangerScore: number;
   pacingScore: number;
-  overallScore: number;
 }
 
 function clampScore(score: number): number {
   return Math.max(0, Math.min(10, score));
 }
 
-function calculateOverall(hook: number, climax: number, cliffhanger: number, pacing: number): number {
-  const raw = hook * 0.3 + climax * 0.3 + cliffhanger * 0.25 + pacing * 0.15;
-  return Math.round(raw * 10) / 10;
-}
-
 export function guardScores(raw: RawScores): ValidatedScores {
-  const hookScore = clampScore(raw.hookScore);
-  const climaxScore = clampScore(raw.climaxScore);
-  const cliffhangerScore = clampScore(raw.cliffhangerScore);
-  const pacingScore = clampScore(raw.pacingScore);
-  const overallScore = calculateOverall(hookScore, climaxScore, cliffhangerScore, pacingScore);
-
   return {
-    hookScore,
-    climaxScore,
-    cliffhangerScore,
-    pacingScore,
-    overallScore,
+    hookScore: clampScore(raw.hookScore),
+    climaxScore: clampScore(raw.climaxScore),
+    cliffhangerScore: clampScore(raw.cliffhangerScore),
+    pacingScore: clampScore(raw.pacingScore),
   };
 }
 

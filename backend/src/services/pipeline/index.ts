@@ -1,6 +1,8 @@
 import type { ClimaxResult } from "../climax";
 import type { PacingResult } from "../pacing";
 import type { FillerResult } from "../filler";
+import type { HookResult } from "../hook";
+import type { CliffhangerResult } from "../cliffhanger";
 import type { LLMResult } from "../llm";
 import type { LLMCallResult, TokenUsage } from "../llm/client";
 import { guardScores, type ValidatedScores } from "../guard";
@@ -10,10 +12,14 @@ export interface EvaluationResult {
   climaxResult: ClimaxResult;
   pacingResult: PacingResult;
   fillerResult: FillerResult;
+  hookResult: HookResult | null;
+  cliffhangerResult: CliffhangerResult | null;
   llmResult: LLMResult | null;
   scores: ValidatedScores;
   isPartial: boolean;
   tokenUsage: TokenUsage | null;
+  hookSource: "llm" | "rule";
+  cliffhangerSource: "llm" | "rule";
 }
 
 export interface ProgressEvent {
@@ -29,6 +35,8 @@ export interface PipelineDependencies {
   analyzeClimax: (text: string) => ClimaxResult;
   analyzePacing: (text: string) => PacingResult;
   detectFiller: (text: string) => FillerResult;
+  analyzeHook: (text: string) => HookResult;
+  analyzeCliffhanger: (text: string) => CliffhangerResult;
   evaluateWithLLM: (text: string, prompt: string) => Promise<LLMCallResult>;
 }
 
@@ -51,10 +59,12 @@ export function createEvaluationPipeline(
       notify?.({ step: 2, stepName: "分析爽点密度" });
       const climaxResult = deps.analyzeClimax(text);
 
-      // 步骤 3：分析节奏
+      // 步骤 3：分析节奏 + Hook + Cliffhanger
       notify?.({ step: 3, stepName: "分析节奏" });
       const pacingResult = deps.analyzePacing(text);
       const fillerResult = deps.detectFiller(text);
+      const hookResult = deps.analyzeHook(text);
+      const cliffhangerResult = deps.analyzeCliffhanger(text);
 
       // 阶段 2：将信号注入 LLM prompt
       const signals: SignalData = {
@@ -80,10 +90,13 @@ export function createEvaluationPipeline(
       const llmResult = llmCallResult?.result ?? null;
 
       // 阶段 4：构建分数 — LLM 分数为主，规则引擎分数为降级方案
+      const hookSource: "llm" | "rule" = llmResult?.hookScore != null ? "llm" : "rule";
+      const cliffhangerSource: "llm" | "rule" = llmResult?.cliffhangerScore != null ? "llm" : "rule";
+
       const rawScores = {
-        hookScore: llmResult?.hookScore ?? 0,
+        hookScore: llmResult?.hookScore ?? hookResult.score,
         climaxScore: llmResult?.climaxScore ?? climaxResult.score,
-        cliffhangerScore: llmResult?.cliffhangerScore ?? 0,
+        cliffhangerScore: llmResult?.cliffhangerScore ?? cliffhangerResult.score,
         pacingScore: llmResult?.pacingScore ?? pacingResult.score,
       };
 
@@ -96,10 +109,14 @@ export function createEvaluationPipeline(
         climaxResult,
         pacingResult,
         fillerResult,
+        hookResult,
+        cliffhangerResult,
         llmResult,
         scores,
         isPartial,
         tokenUsage: llmCallResult?.usage ?? null,
+        hookSource,
+        cliffhangerSource,
       };
     },
   };
