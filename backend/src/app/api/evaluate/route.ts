@@ -9,12 +9,6 @@ import { analyzeCliffhanger } from "@/services/cliffhanger";
 import { createLLMClient, getLLMConfig } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
 import { calculateCost } from "@/lib/cost";
-import { CORS_HEADERS } from "@/lib/cors";
-
-export async function OPTIONS() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
-}
-
 const pipeline = createEvaluationPipeline({
   analyzeClimax,
   analyzePacing,
@@ -55,7 +49,7 @@ export async function POST(request: Request) {
     if (!validation.valid) {
       return NextResponse.json(
         { error: validation.error },
-        { status: 400, headers: CORS_HEADERS }
+        { status: 400 }
       );
     }
 
@@ -80,11 +74,11 @@ export async function POST(request: Request) {
       cliffhangerSource: result.cliffhangerSource,
       tokenUsage,
       costEstimate,
-    }, { headers: CORS_HEADERS });
-  } catch (error) {
+    });
+  } catch {
     return NextResponse.json(
       { error: { code: "INTERNAL_ERROR", message: "评估过程中发生错误" } },
-      { status: 500, headers: CORS_HEADERS }
+      { status: 500 }
     );
   }
 }

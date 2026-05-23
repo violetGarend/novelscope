@@ -2,6 +2,8 @@
 
 AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——告诉作者**哪里有问题、为什么、怎么改**，而非 AI 自动生成工具。
 
+![CI](https://github.com/violetGarend/novelscope/actions/workflows/ci.yml/badge.svg)
+
 ![NovelScope 流程图](docs/assets/novelscope流程图.png)
 
 ## 功能

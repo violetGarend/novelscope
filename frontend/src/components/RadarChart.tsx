@@ -172,7 +172,7 @@ export function RadarChart({
         const endY = cy + (maxR + 10) * Math.sin(axis.angle);
         const { dx, dy } = labelOffset(axis.angle);
 
-        let textAnchor = "middle";
+        let textAnchor: "start" | "middle" | "end" = "middle";
         if (axis.angle === 0) textAnchor = "start";
         else if (axis.angle === Math.PI) textAnchor = "end";
 

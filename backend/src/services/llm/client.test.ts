@@ -1,10 +1,11 @@
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 import { createLLMClient, LLMClientError, getLLMConfig } from "./client";
-import type { LLMCallResult } from "./client";
 import type { LLMResult } from "./schema";
 
 // Mock OpenAI
-const mockCreate = jest.fn();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockCreate = jest.fn<any>();
 jest.mock("openai", () => {
   return {
     __esModule: true,
@@ -127,6 +128,7 @@ describe("LLMClient", () => {
       suggestions: [],
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rateLimitError = new Error("Rate limit exceeded") as any;
     rateLimitError.status = 429;
 

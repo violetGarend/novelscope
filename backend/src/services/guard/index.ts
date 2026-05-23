@@ -27,7 +27,7 @@ export function guardScores(raw: RawScores): ValidatedScores {
 
 export interface VarianceResult {
   variance: number;
-  isWithinBudget: number;
+  isWithinBudget: boolean;
 }
 
 const VARIANCE_THRESHOLD = 0.5;

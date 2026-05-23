@@ -86,8 +86,8 @@ async function main() {
   // Check for API key
   const config = getLLMConfig();
   const { apiKey } = config;
-  const provider = process.env.LLM_PROVIDER || "deepseek";
-  const keyName = provider === "doubao" ? "DOUBAO_API_KEY" : "DEEPSEEK_API_KEY";
+  const llmProvider = process.env.LLM_PROVIDER || "deepseek";
+  const keyName = llmProvider === "doubao" ? "DOUBAO_API_KEY" : "DEEPSEEK_API_KEY";
   if (!apiKey || apiKey.trim() === "") {
     console.log(`⚠ ${keyName} not set. Running in dry-run mode (mock data).`);
     console.log(`  Set ${keyName} in backend/.env to run with real LLM.\n`);

@@ -85,6 +85,7 @@ function isTimeoutError(error: Error): boolean {
 }
 
 function isRateLimitError(error: Error): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (error as any).status === 429 || error.message.includes("429");
 }
 

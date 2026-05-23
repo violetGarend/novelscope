@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
-import { createEvaluationPipeline, type EvaluationResult } from "./index";
+import { createEvaluationPipeline } from "./index";
 import type { ClimaxResult } from "../climax";
 import type { PacingResult } from "../pacing";
 import type { FillerResult } from "../filler";

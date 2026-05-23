@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import { validateChapterText } from "./validate";
 import { POST } from "./route";
 import { getRandomTestChapter } from "../../../test-utils/chapterLoader";
@@ -13,7 +13,9 @@ function createRequest(body: unknown): Request {
 
 describe("validateChapterText", () => {
   it("should reject null/undefined/empty", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(validateChapterText(null as any).valid).toBe(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(validateChapterText(undefined as any).valid).toBe(false);
     expect(validateChapterText("").valid).toBe(false);
   });

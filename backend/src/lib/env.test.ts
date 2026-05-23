@@ -5,7 +5,6 @@ describe("validateEnv", () => {
   const OLD_ENV = process.env;
 
   beforeEach(() => {
-    jest.resetModules();
     process.env = { ...OLD_ENV };
     delete process.env.DATABASE_URL;
     delete process.env.DEEPSEEK_API_KEY;

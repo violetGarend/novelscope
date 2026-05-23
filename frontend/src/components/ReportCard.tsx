@@ -87,7 +87,7 @@ function normalizeSuggestions(raw: (SuggestionItem | string)[]): SuggestionItem[
       return { severity: "info" as const, location: "", issue: s, direction: "" };
     }
     if (typeof s === "object" && s !== null) {
-      const obj = s as Record<string, unknown>;
+      const obj = s as unknown as Record<string, unknown>;
       return {
         severity: (["critical", "warning", "info"].includes(obj.severity as string)
           ? obj.severity

@@ -6,12 +6,11 @@ import {
 import type {
   GoldenSample,
   GoldenValidationReport,
-  EvaluationResult,
 } from "./index";
 import type { ValidatedScores } from "../guard";
 import type { TokenUsage } from "../llm";
+import type { EvaluationResult } from "../pipeline";
 
-// Allow importing from pipeline for the mock result type
 type EvalResult = EvaluationResult;
 
 function makeValidatedScores(overrides?: Partial<ValidatedScores>): ValidatedScores {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { LLMResultSchema, type LLMResult } from "./schema";
+import { LLMResultSchema } from "./schema";
 
 describe("LLMResultSchema", () => {
   it("should accept valid LLM result", () => {
