@@ -47,19 +47,46 @@ POST /api/evaluate/stream (SSE 流式响应)
 
 ## 快速开始
 
+### 1. 获取 API Key
+
+前往 [DeepSeek 开放平台](https://platform.deepseek.com/api_keys) 注册并创建 API Key。新用户通常有免费额度。
+
+### 2. 安装依赖
+
 ```bash
-# 安装依赖
 npm install
+```
 
-# 配置环境变量
+### 3. 配置环境变量
+
+```bash
 cp .env.example .env
-# 编辑 .env 填入 DATABASE_URL 和 DEEPSEEK_API_KEY
+```
 
-# 数据库迁移
+编辑 `.env` 文件，填入以下内容：
+
+```env
+# 必填：DeepSeek API Key（从 platform.deepseek.com 获取）
+DEEPSEEK_API_KEY=sk-your-deepseek-api-key
+
+# 必填：PostgreSQL 数据库连接
+DATABASE_URL=postgresql://localhost:5432/novelscope
+
+# 可选：Claude API Key（P1.3 双模型对比，未配置时仅用 DeepSeek）
+# ANTHROPIC_API_KEY=sk-ant-your-claude-api-key
+```
+
+### 4. 数据库迁移
+
+```bash
 cd backend && npx prisma generate && npx prisma db push
+```
 
-# 启动前后端（前端 :3000，后端 :3001）
-cd backend && npm run dev
+### 5. 启动
+
+```bash
+# 在 backend 目录下同时启动前后端（前端 :3000，后端 :3001）
+npm run dev
 ```
 
 ## 项目结构
