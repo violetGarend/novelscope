@@ -14,7 +14,10 @@
       "Bash(node -e ' *)",
       "mcp__chrome-devtools__navigate_page",
       "Bash(python3 -c ' *)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "mcp__chrome-devtools__get_network_request",
+      "Bash(rm -rf .next)",
+      "Bash(npx kill-port *)"
     ]
   },
   "hooks": {

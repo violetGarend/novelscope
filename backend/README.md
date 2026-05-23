@@ -4,7 +4,7 @@ NovelScope（小说望远镜）后端服务 — AI 写作质量评估引擎。
 
 ## 技术栈
 
-- Node.js + Express
+- Next.js API Routes
 - Prisma ORM + PostgreSQL
 - DeepSeek API（LLM 评估）
 - Jest（测试框架）
@@ -32,5 +32,5 @@ npm run dev
 
 ```bash
 npm test
-# 当前: 91 tests, 14 suites
+# 当前: 158 tests, 18 suites
 ```

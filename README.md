@@ -2,7 +2,7 @@
 
 AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——告诉作者**哪里有问题、为什么、怎么改**，而非 AI 自动生成工具。
 
-![NovelScope 流程图](docs/novelscope流程图.png)
+![NovelScope 流程图](docs/assets/novelscope流程图.png)
 
 ## 功能
 
@@ -39,7 +39,7 @@ POST /api/evaluate/stream (SSE 流式响应)
 │   ├── Pacing 检测 — 段落分类 + 张力曲线 + CV/熵评分 → 0-10 分
 │   └── Filler 检测 — bigram Jaccard 段落相似度 → 注水段落列表
 ├── Prompt 构建（规则引擎信号 + 锚点文本 + 记忆上下文注入）
-├── LLM 评估（DeepSeek，45s 超时，1 次重试，P1.3 双模型并行）
+├── LLM 评估（DeepSeek，45s 超时，1 次重试，P1.1 双模型并行）
 │   ├── 成功 → 四维雷达图 + 亮点 + 建议 + 一致性问题
 │   └── 超时/失败 → 规则引擎分数兜底，LLM 定性分析跳过
 └── 持久化（P1.2）+ 配额检查（P1.6）
@@ -49,7 +49,7 @@ POST /api/evaluate/stream (SSE 流式响应)
 
 ### 1. 获取 API Key
 
-前往 [DeepSeek 开放平台](https://platform.deepseek.com/api_keys) 注册并创建 API Key。新用户通常有免费额度。
+前往 [DeepSeek 开放平台](https://platform.deepseek.com/api_keys) 注册并创建 API Key。
 
 ### 2. 安装依赖
 
@@ -120,8 +120,13 @@ npm run dev
 │       │   ├── payment/   # 支付 + 配额（P1.6）
 │       │   └── golden-sample/  # Golden Sample 验证
 │       └── scripts/       # CLI 工具（calibrate.ts 等）
-├── docs/                  # 文档、设计、截图、Issue 追踪
-├── DESIGN.md              # 设计系统
+├── docs/                  # 文档
+│   ├── prd/               #   技术 PRD
+│   ├── design/            #   设计系统 + MVP 设计文档
+│   ├── reports/           #   审查报告 + 市场调研 + Golden Sample
+│   ├── product/           #   产品立项定义
+│   ├── assets/            #   图片 + 截图
+│   └── issues/            #   Issue 追踪 (P0/ + P1/)
 └── CLAUDE.md              # 项目开发指南
 ```
 
@@ -131,7 +136,7 @@ npm run dev
 
 ### P0（已完成 ✅）
 
-16 个 Issue，281 个测试通过（后端 Jest 158 + 前端 Vitest 123）。
+17 个 Issue，289 个测试通过（后端 Jest 158 + 前端 Vitest 131）。
 
 | # | 模块 | 说明 |
 |---|------|------|
@@ -151,22 +156,21 @@ npm run dev
 | #14 | Hook+Cliffhanger | 开头类型检测 + 章末悬念检测规则引擎兜底 |
 | #15 | 四维雷达图 | 替换综合分 — Hook/爽点/悬念/节奏雷达图 |
 | #16 | 报告架构重排 | 亮点 → 建议（严重度分级）→ 雷达图 → 节奏 → 注水 → 一致性 |
+| #17 | 节奏曲线三线重设计 | 动作/对话/描写分段折线 + 趋势虚线 + 图例交互 |
 
 ### P1（进行中 ⏳）
 
-22 个 Issue 已拆分，详见 [Issue 追踪表](docs/issues/README.md)。
+26 个 Issue 已拆分（含 [P1.1 规则引擎 v2 重构 PRD](docs/prd/PRD-P1-规则引擎v2重构.md) 的 8 个新 Issue），详见 [Issue 追踪表](docs/issues/README.md)。
 
-| 阶段 | 内容 | 预计 |
+| 阶段 | 内容 | 说明 |
 |------|------|------|
-| P1.0 | API key 轮换 + CORS 中间件 + CI 搭建 | 第 1-2 周 |
-| P1.1 | 用户注册/登录/GitHub OAuth + 认证 UI | 第 2-4 周 |
-| P1.2 | 评估结果入库 + 历史仪表盘 | 第 4-6 周 |
-| P1.3 | Prompt v2 锚点校准 + DeepSeek/Claude 双模型对比 | 第 5-8 周 |
-| P1.4 | pgvector 向量记忆（角色/设定提取 + 跨章节一致性） | 第 7-10 周 |
-| P1.5 | 文风分析 + AI 痕迹检测 + 题材热度 + 报告分享 | 第 8-11 周 |
-| P1.6 | 微信/支付宝支付 + 三级会员（免费/标准/专业） | 第 10-13 周 |
-
-总计约 13 周（单人 + AI 辅助）。
+| P1.0 | API key 轮换 + CORS 中间件 + CI 搭建 | 安全第一 |
+| P1.1 | 规则引擎 v2 重构（特征提取器 + Prompt v2 锚点 + 双模型编排 + 前端适配） | **基础架构变更**，8 个 Issue（p1-003~010），p1-005 为 Gate |
+| P1.2 | 用户注册/登录/GitHub OAuth + 认证 UI | 用户身份体系 |
+| P1.3 | 评估结果入库 + 历史仪表盘 + 报告分享 | 数据持久化 |
+| P1.4 | pgvector 向量记忆（角色/设定提取 + 跨章节一致性） | 长篇小说记忆 |
+| P1.5 | 文风分析 + AI 痕迹检测 + 题材热度 | 扩展评估维度 |
+| P1.6 | 微信/支付宝支付 + 三级会员（免费/标准/专业） | 商业化 |
 
 ## 评分模型
 
@@ -179,18 +183,18 @@ P0 使用四维雷达图（已取消加权综合分）：
 | Cliffhanger | 章末悬念 | 规则引擎（章末悬念检测）+ LLM 调整 |
 | Pacing | 节奏 | 规则引擎（段落分类 + 张力曲线）+ LLM 调整 |
 
-P1.3 将引入评分锚点 + 强制分布 + 双模型对比，修复趋中评分问题。
+P1.1 规则引擎 v2 重构将引擎转型为特征提取器，Prompt v2 引入 6 锚点评分 + 软化分布引导 + DeepSeek/Claude 双模型交叉验证，修复趋中评分问题。详见 [PRD](docs/prd/PRD-P1-规则引擎v2重构.md)。
 
 ## 文档
 
 | 文档 | 说明 |
 |------|------|
 | [CLAUDE.md](CLAUDE.md) | 项目开发指南（技术栈、模块、开发模式、Skill 路由） |
-| [DESIGN.md](DESIGN.md) | 设计系统（字体、颜色、间距、组件规范） |
-| [AI小说创作平台-产品立项定义文档.md](AI小说创作平台-产品立项定义文档.md) | 产品立项定义 |
-| [AI小说创作市场调研报告-三方验证版.md](AI小说创作市场调研报告-三方验证版.md) | 市场调研报告 |
-| [docs/PRD-P0-追读力评估原型.md](docs/PRD-P0-追读力评估原型.md) | P0 技术 PRD |
-| [docs/PRD-P1-产品化阶段.md](docs/PRD-P1-产品化阶段.md) | P1 产品化 PRD |
+| [DESIGN.md](docs/design/DESIGN.md) | 设计系统（字体、颜色、间距、组件规范） |
+| [AI小说创作平台-产品立项定义文档.md](docs/product/AI小说创作平台-产品立项定义文档.md) | 产品立项定义 |
+| [AI小说创作市场调研报告-三方验证版.md](docs/reports/AI小说创作市场调研报告-三方验证版.md) | 市场调研报告 |
+| [PRD-P0-追读力评估原型.md](docs/prd/PRD-P0-追读力评估原型.md) | P0 技术 PRD |
+| [PRD-P1-规则引擎v2重构.md](docs/prd/PRD-P1-规则引擎v2重构.md) | P1 规则引擎 v2 重构 PRD（特征提取器 + 锚点评分 + 双模型） |
 | [docs/issues/README.md](docs/issues/README.md) | Issue 追踪表（P0 完成 + P1 规划） |
 
 ## License

@@ -33,5 +33,5 @@ npm run dev
 
 ```bash
 npm test
-# 当前: 53 tests, 6 suites
+# 当前: 131 tests, 8 suites
 ```

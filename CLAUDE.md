@@ -6,11 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **NovelScope** (小说望远镜) — 面向中文网文作者的AI写作质量评估与商业化辅助SaaS平台。核心差异化：追读力分析、爽点检测、一致性审查、商业化建议。定位为"分析辅助工具"而非"AI自动生成工具"。
 
-产品立项文档: `AI小说创作平台-产品立项定义文档.md`
-P0 技术 PRD: `docs/PRD-P0-追读力评估原型.md`
-市场调研报告: `AI小说创作市场调研报告-三方验证版.md`
-设计系统: `DESIGN.md`
-Issue 追踪: `docs/issues/README.md`
+**文档索引:** `docs/README.md` — 所有文档的目录结构和什么时候该读什么。关键入口：
+- 设计系统: `docs/design/DESIGN.md`（UI 改动前必读）
+- Issue 追踪: `docs/issues/README.md`（P0 → `P0/` | P1 → `P1/`）
+- 技术 PRD: `docs/prd/`（P0 原型 / P1 产品化 / P1 规则引擎 v2）
+- 产品定义: `docs/product/` | 市场调研 + 审查: `docs/reports/`
 
 ## 技术栈
 
@@ -38,7 +38,7 @@ Issue 追踪: `docs/issues/README.md`
 
 单人+AI辅助开发。当前处于 Phase 0（验证期），核心评估管线已完整交付。
 
-**已完成 (16 个 Issue)：**
+**已完成 (17 个 Issue)：**
 | # | 模块 | 说明 |
 |---|------|------|
 | #1 | Prisma Schema | 数据模型定义（Novel/Chapter/EvaluationReport） |
@@ -57,12 +57,15 @@ Issue 追踪: `docs/issues/README.md`
 | #14 | Hook+Cliffhanger | 规则引擎兜底(开头类型检测+章末悬念检测) |
 | #15 | 四维雷达图 | 替换综合分(Hook/爽点/悬念/节奏雷达图) |
 | #16 | 报告架构重排 | 亮点→建议(严重度分级)→雷达图→节奏→注水→一致性 |
+| #17 | 节奏曲线三线重设计 | 动作/对话/描写分段折线+趋势虚线+图例交互+25个测试 |
 
-**测试：** 281 个测试通过（后端 Jest 158 + 前端 Vitest 123）
+**测试：** 289 个测试通过（后端 Jest 158 + 前端 Vitest 131）
 
 **模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
 
-参考 `docs/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
+**P1 规划：** [PRD-P1-规则引擎v2重构](docs/prd/PRD-P1-规则引擎v2重构.md) — 规则引擎转型特征提取器 + Prompt v2 锚点评分 + 双模型编排。已拆分为 8 个 Issue（p1-003~010），详见 [Issue 追踪](docs/issues/README.md)。
+
+参考 `docs/prd/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 
 ## Skill routing
 
@@ -84,7 +87,7 @@ Key routing rules:
 
 ## Design System
 
-Always read DESIGN.md before making any visual or UI decisions.
+Always read docs/design/DESIGN.md before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate without explicit user approval.
-In QA mode, flag any code that doesn't match DESIGN.md.
+In QA mode, flag any code that doesn't match docs/design/DESIGN.md.
