@@ -36,7 +36,7 @@ const MOCK_PACING_RESULT: PacingFeatures = {
   typeRatio: { action: 0, dialogue: 1, description: 0 },
 };
 
-const MOCK_FILLER_RESULT: FillerFeatures = { items: [], suspiciousPairs: [] };
+const MOCK_FILLER_RESULT: FillerFeatures = { items: [], suspiciousPairs: [], truncated: false };
 
 const MOCK_HOOK_RESULT: HookFeatures = {
   openingType: "conflict",

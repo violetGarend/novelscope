@@ -77,7 +77,7 @@ LLM 启用阶段（新增）:
 | p1-006 | [双模型编排 + 降级路径](P1/p1-006-dual-model-orchestration.md) | AFK | p1-005（条件：校准通过） | ✅ 完成 |
 | p1-007 | [Guard 扩展 — 分歧检测](P1/p1-007-guard-divergence.md) | AFK | p1-006 | ✅ 完成 |
 | p1-008 | [Degrade-Report 独立服务 — 模板 NLG](P1/p1-008-degrade-report-service.md) | AFK | — | ✅ 完成 |
-| p1-009 | [Filler O(n²) 性能优化](P1/p1-009-filler-performance.md) | AFK | — | ⏳ 待开始 |
+| p1-009 | [Filler O(n²) 性能优化](P1/p1-009-filler-performance.md) | AFK | — | ✅ 完成 |
 | p1-010 | [前端适配新数据结构 — 双模型雷达图 + 降级 UI](P1/p1-010-frontend-v2-adaptation.md) | AFK | p1-003, p1-006, p1-008 | ⏳ 待开始 |
 
 ### P1.2 用户系统

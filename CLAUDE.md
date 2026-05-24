@@ -38,7 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 单人+AI辅助开发。当前处于 Phase 0（验证期），核心评估管线已完整交付。
 
-**已完成 (P0: 17 个 + P1: 8 个，共 25 个 Issue)：**
+**已完成 (P0: 17 个 + P1: 9 个，共 26 个 Issue)：**
 
 P0:
 | # | 模块 | 说明 |
@@ -72,8 +72,9 @@ P1 (规则引擎 v2):
 | p1-006 | 双模型编排 + 降级路径 | DeepSeek+豆包并行，三态结果(complete/partial/degraded) |
 | p1-007 | Guard 扩展 — 分歧检测 | detectDivergence(>2阈值)+console.warn日志，模块分离 |
 | p1-008 | Degrade-Report 独立服务 | 5引擎Feature→中文定性报告，severity 3档措辞，顶部总结句，12个测试 |
+| p1-009 | Filler O(n²) 性能优化 | 段落>200截断至前200段，O(n²)→O(200²)，truncated标记 |
 
-**测试：** 254 个测试通过（后端 Jest 254）
+**测试：** 258 个测试通过（后端 Jest 258）
 
 **模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
 

@@ -33,6 +33,7 @@ function mockFeatures(overrides?: Partial<{
     filler: {
       items: [],
       suspiciousPairs: [],
+      truncated: false,
       ...overrides?.filler,
     },
     hook: {
@@ -103,7 +104,7 @@ describe("generateDegradeReport", () => {
       climax: { matchedKeywords: [], dialogueDensity: 0, conflictDensity: 0 },
       cliffhanger: { endingType: "flat", suspenseHitCount: 0, hasQuestion: false, hasReversalHint: false },
       pacing: { curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } },
-      filler: { items: [], suspiciousPairs: [] },
+      filler: { items: [], suspiciousPairs: [], truncated: false },
     });
     const report = generateDegradeReport(features);
     // Should not throw, should return a string
@@ -124,7 +125,7 @@ describe("generateDegradeReport", () => {
   });
 
   it("reports no filler detected when empty", () => {
-    const features = mockFeatures({ filler: { items: [], suspiciousPairs: [] } });
+    const features = mockFeatures({ filler: { items: [], suspiciousPairs: [], truncated: false } });
     const report = generateDegradeReport(features);
     expect(report).toContain("未检测到明显注水");
   });

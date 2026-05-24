@@ -268,7 +268,7 @@ describe("buildEvaluationPrompt (v2)", () => {
     const signals = createMockSignals({
       climax: { matchedKeywords: [], keywordCategories: { reversal: [], shock: [], breakthrough: [], conflict: [], emotion: [] }, dialogueDensity: 0, conflictDensity: 0 },
       pacing: { curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } },
-      filler: { items: [], suspiciousPairs: [] },
+      filler: { items: [], suspiciousPairs: [], truncated: false },
       hook: { openingType: "description", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 0, suspenseHitCount: 0 },
       cliffhanger: { endingType: "flat", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 0 },
     });

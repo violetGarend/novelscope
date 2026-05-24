@@ -41,7 +41,7 @@ function makeMockEvalResult(scores: ValidatedScores, isPartial = false): EvalRes
       cv: 0,
       typeRatio: { action: 0, dialogue: 0, description: 0 },
     },
-    fillerResult: { items: [], suspiciousPairs: [] },
+    fillerResult: { items: [], suspiciousPairs: [], truncated: false },
     hookResult: { openingType: "description", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 0, suspenseHitCount: 0 },
     cliffhangerResult: { endingType: "flat", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 0 },
     llmResult: isPartial

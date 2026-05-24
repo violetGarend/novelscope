@@ -13,6 +13,7 @@ export interface SuspiciousPair {
 export interface FillerFeatures {
   items: FillerItem[];
   suspiciousPairs: SuspiciousPair[];
+  truncated: boolean;
 }
 
 function similarity(a: string, b: string): number {
@@ -38,25 +39,30 @@ function similarity(a: string, b: string): number {
   return (2 * intersection) / (bigramsA.size + bigramsB.size);
 }
 
+const MAX_PARAGRAPHS = 200;
+
 export function detectFiller(text: string): FillerFeatures {
   if (!text || text.trim().length === 0) {
-    return { items: [], suspiciousPairs: [] };
+    return { items: [], suspiciousPairs: [], truncated: false };
   }
 
   const normalized = text.replace(/\r\n/g, "\n");
   const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length < 2) {
-    return { items: [], suspiciousPairs: [] };
+    return { items: [], suspiciousPairs: [], truncated: false };
   }
+
+  const truncated = paragraphs.length > MAX_PARAGRAPHS;
+  const capped = truncated ? paragraphs.slice(0, MAX_PARAGRAPHS) : paragraphs;
 
   const items: FillerItem[] = [];
   const suspiciousPairs: SuspiciousPair[] = [];
   const SIMILARITY_THRESHOLD = 0.7;
   const SUSPICIOUS_THRESHOLD = 0.4;
 
-  for (let i = 0; i < paragraphs.length; i++) {
-    for (let j = i + 1; j < paragraphs.length; j++) {
-      const sim = similarity(paragraphs[i], paragraphs[j]);
+  for (let i = 0; i < capped.length; i++) {
+    for (let j = i + 1; j < capped.length; j++) {
+      const sim = similarity(capped[i], capped[j]);
       if (sim >= SIMILARITY_THRESHOLD) {
         items.push({
           paragraph: i + 1,
@@ -80,5 +86,5 @@ export function detectFiller(text: string): FillerFeatures {
     }
   }
 
-  return { items, suspiciousPairs };
+  return { items, suspiciousPairs, truncated };
 }
