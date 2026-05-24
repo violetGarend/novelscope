@@ -20,14 +20,14 @@
 
 ## Acceptance criteria
 
-- [ ] `npx tsx backend/scripts/calibrate.ts` 可执行
-- [ ] 5 样本 × 3 轮 = 15 次评估，全部完成或明确失败
-- [ ] 方差计算正确（每个 sample 3 轮 4 维度的 pooled variance）
-- [ ] 命中范围判断逻辑正确（与 Golden Sample 标注对比，容差 ±1.5）
-- [ ] 验证报告 JSON 包含：样本 ID、每轮分数、方差、命中状态、整体 PASS/FAIL
-- [ ] Gate 通过标准：方差 < 0.5 且 ≥ 4/5 样本命中
-- [ ] 不通过时有清晰的调优建议输出
-- [ ] CLI 测试覆盖（约 5 个测试：方差计算、命中判断、报告生成、PASS/FAIL 逻辑）
+- [x] `npx tsx backend/scripts/calibrate.ts` 可执行
+- [x] 5 样本 × 3 轮 = 15 次评估，全部完成或明确失败
+- [x] 方差计算正确（每个 sample 3 轮 4 维度的 pooled variance）
+- [x] 命中范围判断逻辑正确（与 Golden Sample 标注对比，容差 ±1.5）
+- [x] 验证报告 JSON 包含：样本 ID、每轮分数、方差、命中状态、整体 PASS/FAIL
+- [x] Gate 通过标准：方差 < 0.5 且 ≥ 4/5 样本命中
+- [x] 不通过时有清晰的调优建议输出
+- [x] 测试覆盖（13 个测试：容差命中、池化方差、GATE PASS/FAIL、报告生成）
 
 ## Blocked by
 

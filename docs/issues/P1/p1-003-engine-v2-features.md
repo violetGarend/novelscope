@@ -28,14 +28,14 @@
 
 ## Acceptance criteria
 
-- [ ] 5 个引擎的类型从 `*Result` 重命名为 `*Features`
-- [ ] 所有 `score: number` 字段移除
-- [ ] 所有评分公式（如 `keywordScore * 0.5 + dialogueBonus * 0.2 + conflictBonus * 0.3`）移除
-- [ ] 检测逻辑完整保留（关键词匹配、段落分类、张力计算等）
-- [ ] 所有依赖文件（约 11 个）的类型引用更新
-- [ ] 引擎测试就地改写：旧 score 断言移除，新增特征字段断言（如 `expect(result.matchedKeywords).toContain(...)`）
-- [ ] 后端测试通过（预期约 188 个，原 158 移除约 30 个 score 测试 + 新增约 60 个特征断言）
-- [ ] 已有前端 131 个测试无回归
+- [x] 5 个引擎的类型从 `*Result` 重命名为 `*Features`
+- [x] 所有 `score: number` 字段移除
+- [x] 所有评分公式（如 `keywordScore * 0.5 + dialogueBonus * 0.2 + conflictBonus * 0.3`）移除
+- [x] 检测逻辑完整保留（关键词匹配、段落分类、张力计算等）
+- [x] 所有依赖文件（约 11 个）的类型引用更新
+- [x] 引擎测试就地改写：旧 score 断言移除，新增特征字段断言（如 `expect(result.matchedKeywords).toContain(...)`）
+- [x] 后端测试通过（210 个，超出预期）
+- [x] 已有前端 131 个测试无回归
 
 ## Blocked by
 

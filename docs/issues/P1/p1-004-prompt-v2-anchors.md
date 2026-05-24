@@ -19,14 +19,14 @@
 
 ## Acceptance criteria
 
-- [ ] `buildEvaluationPrompt()` 接受 p1-003 的 Features 类型作为输入
-- [ ] 产出的 prompt 包含 4 维度 × 6 锚点（24 个锚点示例），全部为中文网文风格
-- [ ] prompt 使用 XML 标签结构分隔各区域
-- [ ] 返回值包含 `needsTruncation: boolean` 和 `truncatedFeatures` 字段
-- [ ] 软化措辞替代强制分布指令
-- [ ] 现有 6 个 prompt 测试替换为约 15 个新测试（锚点内容、特征注入、截断检测、软化措辞）
-- [ ] 后端测试全部通过
-- [ ] 可选：v1 prompt 通过配置开关保留
+- [x] `buildEvaluationPrompt()` 接受 p1-003 的 Features 类型作为输入
+- [x] 产出的 prompt 包含 4 维度 × 6 锚点（24 个锚点示例），全部为中文网文风格
+- [x] prompt 使用 XML 标签结构分隔各区域
+- [x] 返回值包含 `needsTruncation: boolean` 和 `truncatedFeatures` 字段
+- [x] 软化措辞替代强制分布指令
+- [x] 现有 6 个 prompt 测试替换为 41 个新测试（锚点内容、特征注入、截断检测、软化措辞、v1 fallback）
+- [x] 后端测试全部通过（210 个）
+- [x] 可选：v1 prompt 通过配置开关保留
 
 ## Blocked by
 
