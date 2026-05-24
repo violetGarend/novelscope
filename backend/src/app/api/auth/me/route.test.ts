@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from "@jest/globals";
+import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 
 const OLD_ENV = process.env;
 
@@ -32,12 +32,15 @@ function createRequest(token?: string): Request {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db: any = prisma.user;
+
 describe("GET /api/auth/me", () => {
   it("should return user info for valid access token", async () => {
     const { signAccessToken } = await import("@/lib/auth");
     const token = await signAccessToken("user_abc123");
 
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+    db.findUnique.mockResolvedValueOnce({
       id: "user_abc123",
       email: "test@example.com",
       name: "Test User",

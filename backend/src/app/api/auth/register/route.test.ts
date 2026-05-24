@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from "@jest/globals";
+import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 
 const OLD_ENV = process.env;
 
@@ -32,10 +32,13 @@ function createRequest(body: unknown): Request {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db: any = prisma.user;
+
 describe("POST /api/auth/register", () => {
   it("should register a new user and return access token", async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
-    (prisma.user.create as jest.Mock).mockResolvedValueOnce({
+    db.findUnique.mockResolvedValueOnce(null);
+    db.create.mockResolvedValueOnce({
       id: "user_abc123",
       email: "test@example.com",
       name: null,
@@ -60,7 +63,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("should return 409 for duplicate email", async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: "existing_user" });
+    db.findUnique.mockResolvedValueOnce({ id: "existing_user" });
 
     const req = createRequest({ email: "test@example.com", password: "password123" });
     const res = await POST(req);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from "@jest/globals";
+import { describe, it, expect, jest, beforeEach, afterAll } from "@jest/globals";
 
 const OLD_ENV = process.env;
 
@@ -31,13 +31,15 @@ function createRequest(body: unknown): Request {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db: any = prisma.user;
+
 describe("POST /api/auth/login", () => {
   it("should login with valid credentials", async () => {
-    // Use a real bcrypt hash for "password123"
     const bcrypt = await import("bcryptjs");
     const hash = await bcrypt.default.hash("password123", 10);
 
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+    db.findUnique.mockResolvedValueOnce({
       id: "user_abc123",
       email: "test@example.com",
       name: null,
@@ -65,7 +67,7 @@ describe("POST /api/auth/login", () => {
     const bcrypt = await import("bcryptjs");
     const hash = await bcrypt.default.hash("password123", 10);
 
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+    db.findUnique.mockResolvedValueOnce({
       id: "user_abc123",
       email: "test@example.com",
       passwordHash: hash,
@@ -80,7 +82,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("should return 401 for nonexistent user", async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
+    db.findUnique.mockResolvedValueOnce(null);
 
     const req = createRequest({ email: "no@example.com", password: "password123" });
     const res = await POST(req);
