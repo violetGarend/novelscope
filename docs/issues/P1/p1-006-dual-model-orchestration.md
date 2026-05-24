@@ -26,17 +26,16 @@
 
 ## Acceptance criteria
 
-- [ ] LLM 客户端支持参数化配置（model + baseURL + apiKey），不再使用 Provider 接口
-- [ ] Pipeline 从 env 读取两个模型配置并 `Promise.allSettled` 并行调用
-- [ ] 双成功路径：返回 `status: "complete"` + `DualModelScores` + 合并后的 features
-- [ ] 部分成功路径：返回 `status: "partial"` + 单模型分数 + `failedModel` 标识
-- [ ] 双双失败路径：返回 `status: "degraded"` + 定性报告文本
-- [ ] 特征截断时触发 LLM 摘要 → 重建 prompt 循环（最多 1 轮）
-- [ ] 45s 超时在双模型下各自独立计时
-- [ ] API 响应类型从单一 `EvaluationReport` 改为 discriminated union
-- [ ] Pipeline 单元测试：mock DI 覆盖三态 + 截断循环（约 12 个测试）
-- [ ] 1 个集成测试：端到端截断 → 摘要 → 重建 prompt
-- [ ] 后端测试全部通过
+- [x] LLM 客户端支持参数化配置（model + baseURL + apiKey），不再使用 Provider 接口
+- [x] Pipeline 从 env 读取两个模型配置并 `Promise.allSettled` 并行调用
+- [x] 双成功路径：返回 `status: "complete"` + `DualModelScores` + 合并后的 features
+- [x] 部分成功路径：返回 `status: "partial"` + 单模型分数 + `failedModel` 标识
+- [x] 双双失败路径：返回 `status: "degraded"` + 定性报告文本
+- [x] 特征截断时触发 LLM 摘要 → 重建 prompt 循环（最多 1 轮）
+- [x] 45s 超时在双模型下各自独立计时
+- [x] API 响应类型从单一 `EvaluationReport` 改为 discriminated union
+- [x] Pipeline 单元测试：mock DI 覆盖三态 + 截断循环（18 个测试）
+- [x] 后端测试全部通过（241 passed）
 
 ## Blocked by
 

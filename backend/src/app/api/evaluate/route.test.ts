@@ -88,7 +88,10 @@ describe("POST /api/evaluate", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toHaveProperty("reportId");
+    expect(data).toHaveProperty("status");
     expect(data).toHaveProperty("scores");
-    expect(data).toHaveProperty("isPartial");
+    expect(data).toHaveProperty("features");
+    expect(data).toHaveProperty("tokenUsage");
+    expect(["complete", "partial", "degraded"]).toContain(data.status);
   });
 });
