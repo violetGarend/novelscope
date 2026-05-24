@@ -84,7 +84,7 @@ LLM 启用阶段（新增）:
 
 | # | 切片 | 类型 | 依赖 | 状态 |
 |---|------|------|------|------|
-| p1-011 | [用户模型扩展 + JWT 认证服务](P1/p1-011-auth-service.md) | AFK | — | ⏳ 待开始 |
+| p1-011 | [用户模型扩展 + JWT 认证服务](P1/p1-011-auth-service.md) | AFK | — | ✅ 完成 |
 | p1-012 | [GitHub OAuth + 认证守卫](P1/p1-012-github-oauth-guard.md) | AFK | p1-011 | ⏳ 待开始 |
 | p1-013 | [认证 UI — 登录/注册页 + AuthProvider + 受保护路由](P1/p1-013-auth-ui.md) | AFK | p1-011 | ⏳ 待开始 |
 

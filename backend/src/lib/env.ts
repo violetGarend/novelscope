@@ -5,6 +5,7 @@ const envSchema = z.object({
   DEEPSEEK_API_KEY: z.string().optional(),
   DOUBAO_API_KEY: z.string().optional(),
   LLM_PROVIDER: z.enum(["deepseek", "doubao"]).default("deepseek"),
+  JWT_SECRET: z.string().min(16, "JWT_SECRET is required (min 16 characters)"),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

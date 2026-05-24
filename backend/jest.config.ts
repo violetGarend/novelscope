@@ -9,6 +9,11 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.js$": "ts-jest",
+  },
+  transformIgnorePatterns: ["/node_modules/(?!jose)"],
 };
 
 export default config;
