@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { ProgressBar } from "./ProgressBar";
-import { ReportCard, ErrorReport, type EvaluationReport } from "./ReportCard";
+import { ReportCard, ErrorReport, type ReportData } from "./ReportCard";
 import { EvaluationHistory } from "./EvaluationHistory";
 import { saveEvaluation } from "./historyStore";
 
@@ -12,7 +12,7 @@ export function EvaluatePage() {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [currentStep, setCurrentStep] = useState(0);
-  const [result, setResult] = useState<EvaluationReport | null>(null);
+  const [result, setResult] = useState<ReportData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
@@ -74,14 +74,22 @@ export function EvaluatePage() {
             if (event.type === "progress") {
               setCurrentStep(event.step);
             } else if (event.type === "result") {
-              const report = event as EvaluationReport;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { type, ...reportData } = event;
+              const report = reportData as ReportData;
               setResult(report);
               setCurrentStep(8);
               setPhase("done");
+
+              // Build report ID for history
+              const reportId = "status" in report
+                ? `report_${Date.now()}`
+                : (report as { reportId: string }).reportId ?? `report_${Date.now()}`;
+
               saveEvaluation({
                 id: `eval_${Date.now()}`,
                 timestamp: Date.now(),
-                reportId: report.reportId,
+                reportId,
                 textSummary: text.slice(0, 100),
                 fullReport: report,
               });
@@ -121,7 +129,14 @@ export function EvaluatePage() {
   if (phase === "done" && result) {
     return (
       <>
-        <ReportCard report={result} />
+        <ReportCard
+          report={result}
+          onRetry={() => {
+            setPhase("idle");
+            setCurrentStep(0);
+            setResult(null);
+          }}
+        />
         <div className="text-center pb-12">
           <button
             onClick={() => { setPhase("idle"); setCurrentStep(0); setResult(null); }}

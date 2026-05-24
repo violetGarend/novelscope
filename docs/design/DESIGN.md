@@ -48,6 +48,10 @@
   - 高分 7-10: #059669（绿色）
   - 中等 5-6: #D97706（黄色）
   - 低分 0-4: #DC2626（红色）
+- **Dual Model Colors:**
+  - DeepSeek Blue: #1E40AF（复用 Primary，实线 strokeWidth 2）
+  - Doubao Purple: #7C3AED（虚线 stroke-dasharray 6,4）
+  - Divergence Warning: #D97706（复用 Warning，⚠ 图标 + hover tooltip 显示双方分数与差值）
 - **Dark Mode:** 背景 #111318，表面 #1C1F26，hover #282C35，主色提亮为 #3B82F6，降低饱和度 10-20%
 
 ## Spacing
@@ -106,3 +110,4 @@
 | 2026-05-18 | 数据可视化为页面主角 | 核心记忆点决定，图表和数据是第一视觉元素 |
 | 2026-05-18 | 优势先行的情感设计 | 避免 raw scores 伤害用户留存，先展示亮点再提建议 |
 | 2026-05-18 | 暖灰体系替代冷灰 | 与暖纸色背景协调，整体更温暖 |
+| 2026-05-24 | 双模型可视化颜色 token | DeepSeek #1E40AF 蓝实线 + 豆包 #7C3AED 紫虚线 + 分歧 #D97706 橙警告。颜色+线型双重编码确保色盲可区分 |

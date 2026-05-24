@@ -1,50 +1,59 @@
 import { NextResponse } from "next/server";
 import { validateChapterText } from "../validate";
-import { createEvaluationPipeline } from "@/services/pipeline";
+import { createDualModelPipeline } from "@/services/pipeline/orchestrator";
 import { analyzeClimax } from "@/services/climax";
 import { analyzePacing } from "@/services/pacing";
 import { detectFiller } from "@/services/filler";
 import { analyzeHook } from "@/services/hook";
 import { analyzeCliffhanger } from "@/services/cliffhanger";
-import { createLLMClient, getLLMConfig } from "@/services/llm";
+import { createLLMClient } from "@/services/llm";
 import type { LLMCallResult } from "@/services/llm";
-import { calculateCost } from "@/lib/cost";
+
 function sse(data: object): string {
   return `data: ${JSON.stringify(data)}\n\n`;
 }
 
-const pipeline = createEvaluationPipeline(
-  {
-    analyzeClimax,
-    analyzePacing,
-    detectFiller,
-    analyzeHook,
-    analyzeCliffhanger,
-    evaluateWithLLM: async (chapterText: string, prompt: string): Promise<LLMCallResult> => {
-      const config = getLLMConfig();
-      if (!config.apiKey) {
-        const provider = process.env.LLM_PROVIDER || "deepseek";
-        const keyName = provider === "doubao" ? "DOUBAO_API_KEY" : "DEEPSEEK_API_KEY";
-        return {
-          result: {
-            hookScore: 5,
-            climaxScore: 5,
-            cliffhangerScore: 5,
-            pacingScore: 5,
-            consistencyIssues: [],
-            highlights: ["（LLM 评估未启用）"],
-            suggestions: [
-              { severity: "info", location: "", issue: `建议配置 ${keyName} 以启用完整评估`, direction: "在 backend/.env 中设置环境变量" },
-            ],
-          },
-          usage: { promptTokens: 0, completionTokens: 0 },
-        };
-      }
-      const client = createLLMClient(config);
-      return client.evaluateWithLLM(chapterText, prompt);
-    },
-  }
-);
+const DEEPSEEK_CONFIG = {
+  model: "deepseek-v4-flash",
+  baseURL: "https://api.deepseek.com/v1",
+} as const;
+
+const DOUBAO_CONFIG = {
+  model: "doubao-seed-2-0-lite-260428",
+  baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+} as const;
+
+const pipeline = createDualModelPipeline({
+  analyzeClimax,
+  analyzePacing,
+  detectFiller,
+  analyzeHook,
+  analyzeCliffhanger,
+  evaluateModelA: async (text: string, prompt: string): Promise<LLMCallResult> => {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      throw new Error("DEEPSEEK_API_KEY not configured");
+    }
+    const client = createLLMClient({
+      apiKey,
+      model: DEEPSEEK_CONFIG.model,
+      baseURL: DEEPSEEK_CONFIG.baseURL,
+    });
+    return client.evaluateWithLLM(text, prompt);
+  },
+  evaluateModelB: async (text: string, prompt: string): Promise<LLMCallResult> => {
+    const apiKey = process.env.DOUBAO_API_KEY;
+    if (!apiKey) {
+      throw new Error("DOUBAO_API_KEY not configured");
+    }
+    const client = createLLMClient({
+      apiKey,
+      model: DOUBAO_CONFIG.model,
+      baseURL: DOUBAO_CONFIG.baseURL,
+    });
+    return client.evaluateWithLLM(text, prompt);
+  },
+});
 
 export async function POST(request: Request) {
   try {
@@ -76,27 +85,8 @@ export async function POST(request: Request) {
           },
         });
 
-        const tokenUsage = result.tokenUsage && result.tokenUsage.promptTokens > 0
-          ? result.tokenUsage
-          : null;
-        const costEstimate = tokenUsage ? calculateCost(tokenUsage, getLLMConfig().model) : null;
-
-        send({
-          type: "result",
-          reportId: `report_${Date.now()}`,
-          scores: result.scores,
-          climaxResult: result.climaxResult,
-          pacingResult: result.pacingResult,
-          fillerResult: result.fillerResult,
-          hookResult: result.hookResult,
-          cliffhangerResult: result.cliffhangerResult,
-          llmResult: result.llmResult,
-          isPartial: result.isPartial,
-          hookSource: result.hookSource,
-          cliffhangerSource: result.cliffhangerSource,
-          tokenUsage,
-          costEstimate,
-        });
+        // Send V2 result (discriminated union)
+        send({ type: "result", ...result });
 
         controller.close();
       },

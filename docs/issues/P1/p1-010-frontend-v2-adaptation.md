@@ -44,19 +44,19 @@
 
 ## Acceptance criteria
 
-- [ ] `frontend/src/types/evaluation.ts` 新建，定义 `EvaluationResult` discriminated union 类型
-- [ ] ReportCard 根据 `status` 渲染三种不同 UI：
+- [x] `frontend/src/types/evaluation.ts` 新建，定义 `EvaluationResult` discriminated union 类型
+- [x] ReportCard 根据 `status` 渲染三种不同 UI：
   - `complete` → 双模型雷达图 + 分歧标记 + 共识标签 + 双行 Token
   - `partial` → 单模型雷达图 + 缺失标记 + 黄色提示条
   - `degraded` → 定性文本 + 横幅 + 重试按钮
-- [ ] RadarChart 支持双多边形叠加（不同颜色 + 线型）+ 同步展开动画
-- [ ] 分歧标记维度显示 ⚠ 图标 + hover tooltip
-- [ ] 色盲双重编码（颜色 + 线型）
-- [ ] ARIA 语义标注
-- [ ] 降级报告底部"重新评估"按钮触发完整评估
-- [ ] ../../design/DESIGN.md 追加 2 个 color token（豆包 紫、Divergence 复用 warning 橙）
-- [ ] 组件测试覆盖三态渲染 + 双多边形 + 分歧标记（约 25 个测试）
-- [ ] 前端 131 个测试通过 + 新增约 25 个 = 约 156 个
+- [x] RadarChart 支持双多边形叠加（不同颜色 + 线型）+ 同步展开动画
+- [x] 分歧标记维度显示 ⚠ 图标 + hover tooltip
+- [x] 色盲双重编码（颜色 + 线型）
+- [x] ARIA 语义标注
+- [x] 降级报告底部"重新评估"按钮触发完整评估
+- [x] ../../design/DESIGN.md 追加 2 个 color token（豆包 紫、Divergence 复用 warning 橙）
+- [x] 组件测试覆盖三态渲染 + 双多边形 + 分歧标记（27 个新增测试）
+- [x] 前端 131 个测试通过 + 新增 27 个 = 158 个
 
 ## Blocked by
 

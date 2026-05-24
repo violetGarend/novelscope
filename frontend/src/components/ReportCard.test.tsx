@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ReportCard, EmptyReport, ErrorReport, type EvaluationReport } from "./ReportCard";
+import type { EvaluationResultV2 } from "../types/evaluation";
+
+// ── Old format fixture (backward compatible) ──
 
 const FULL_REPORT: EvaluationReport = {
   reportId: "report_test_001",
@@ -49,7 +52,64 @@ const FULL_REPORT: EvaluationReport = {
   costEstimate: 0.0019,
 };
 
-describe("ReportCard — full report", () => {
+// ── V2 complete fixture ──
+
+const V2_COMPLETE: EvaluationResultV2 = {
+  status: "complete",
+  scores: {
+    deepseek: { hookScore: 8, climaxScore: 7, cliffhangerScore: 6, pacingScore: 5 },
+    doubao: { hookScore: 7, climaxScore: 6, cliffhangerScore: 5, pacingScore: 5.5 },
+  },
+  features: {
+    climax: { matchedKeywords: ["打脸"], keywordCategories: { reversal: ["打脸"], shock: [], breakthrough: [], conflict: [], emotion: [] }, dialogueDensity: 0.5, conflictDensity: 0.3 },
+    pacing: { curve: [{ paragraph: 1, tension: 5, type: "dialogue" }], cv: 0.45, typeRatio: { action: 0.1, dialogue: 0.6, description: 0.3 } },
+    filler: { items: [], suspiciousPairs: [], truncated: false },
+    hook: { openingType: "conflict", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 3, suspenseHitCount: 1 },
+    cliffhanger: { endingType: "suspense", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 2 },
+  },
+  tokenUsage: {
+    deepseek: { promptTokens: 1200, completionTokens: 350 },
+    doubao: { promptTokens: 1100, completionTokens: 300 },
+  },
+  deepseek: {
+    highlights: ["开头冲突感强，能迅速抓住读者注意力"],
+    suggestions: [
+      { severity: "warning", location: "中段对话", issue: "中间段落的对话节奏可以更紧凑", direction: "适当减少重复信息" },
+    ],
+    consistencyIssues: ["第3段提到角色A在室内，第5段又说他在户外，前后矛盾"],
+  },
+  doubao: {
+    highlights: ["结尾悬念设置有力"],
+    suggestions: [
+      { severity: "info", location: "开头", issue: "开场可以更有冲击力", direction: "增加金句或强冲突" },
+    ],
+    consistencyIssues: [],
+  },
+};
+
+// ── V2 partial fixture ──
+
+const V2_PARTIAL: EvaluationResultV2 = {
+  status: "partial",
+  scores: { hookScore: 8, climaxScore: 7, cliffhangerScore: 6, pacingScore: 5 },
+  features: V2_COMPLETE.features,
+  failedModel: "B",
+  failedModelLabel: "Doubao",
+  tokenUsage: { promptTokens: 1200, completionTokens: 350 },
+};
+
+// ── V2 degraded fixture ──
+
+const V2_DEGRADED: EvaluationResultV2 = {
+  status: "degraded",
+  report: "【降级评估报告】\n\n## 开头分析\n开头类型为 conflict，冲突密度适中。\n\n## 爽点分析\n检测到爽点关键词：打脸。对话密度较高。\n\n## 章末悬念\n结尾类型为 suspense，悬念密度适中。\n\n## 节奏分析\n变异系数 0.45，对话占比 60%。",
+  features: V2_COMPLETE.features,
+  reason: "双模型均不可用",
+};
+
+// ── Old format tests (backward compatible) ──
+
+describe("ReportCard — full report (old format)", () => {
   it("should render radar chart with four axis labels", () => {
     render(<ReportCard report={FULL_REPORT} />);
     expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
@@ -151,7 +211,7 @@ describe("ReportCard — full report", () => {
   });
 });
 
-describe("ReportCard — suggestions severity", () => {
+describe("ReportCard — suggestions severity (old format)", () => {
   it("should display severity badges (critical/warning/info)", () => {
     const reportWithAllSeverities: EvaluationReport = {
       ...FULL_REPORT,
@@ -165,9 +225,7 @@ describe("ReportCard — suggestions severity", () => {
       },
     };
     render(<ReportCard report={reportWithAllSeverities} />);
-    // Badge text contains icon prefix, use exact:false
     expect(screen.getByText("关键", { exact: false })).toBeInTheDocument();
-    // "建议" matches both heading "改进建议" and warning badge — should appear at least twice
     const suggestionMatches = screen.getAllByText("建议", { exact: false });
     expect(suggestionMatches.length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("观察", { exact: false })).toBeInTheDocument();
@@ -221,7 +279,7 @@ describe("ReportCard — suggestions severity", () => {
   });
 });
 
-describe("ReportCard — empty states", () => {
+describe("ReportCard — empty states (old format)", () => {
   it("should show empty highlight state when no highlights", () => {
     const noHighlights: EvaluationReport = {
       ...FULL_REPORT,
@@ -241,7 +299,7 @@ describe("ReportCard — empty states", () => {
   });
 });
 
-describe("ReportCard — filler section", () => {
+describe("ReportCard — filler section (old format)", () => {
   it("should show filler detection section when filler items exist", () => {
     const reportWithFiller: EvaluationReport = {
       ...FULL_REPORT,
@@ -278,7 +336,7 @@ describe("ReportCard — filler section", () => {
   });
 });
 
-describe("ReportCard — partial result", () => {
+describe("ReportCard — partial result (old format)", () => {
   const PARTIAL_REPORT: EvaluationReport = {
     ...FULL_REPORT,
     llmResult: null,
@@ -312,6 +370,163 @@ describe("ReportCard — partial result", () => {
   });
 });
 
+// ── V2 complete state tests ──
+
+describe("ReportCard — V2 complete state", () => {
+  it("should render dual-model radar chart", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByLabelText("四维雷达图，DeepSeek 评分和 Doubao 评分叠加显示")).toBeInTheDocument();
+  });
+
+  it("should show consensus label when no divergence", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByText(/2 个 AI 评估一致/)).toBeInTheDocument();
+  });
+
+  it("should show divergence label when divergence exists", () => {
+    const withDiv: EvaluationResultV2 = {
+      ...V2_COMPLETE,
+      divergence: [
+        { dimension: "hookScore", deepseek: 9, doubao: 5, delta: 4 },
+      ],
+    };
+    render(<ReportCard report={withDiv} />);
+    expect(screen.getByText(/评估存在差异/)).toBeInTheDocument();
+  });
+
+  it("should show highlights section with merged content from both models", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByText("亮点分析")).toBeInTheDocument();
+    expect(screen.getByText(/开头冲突感强/)).toBeInTheDocument();
+    expect(screen.getByText(/结尾悬念设置有力/)).toBeInTheDocument();
+  });
+
+  it("should show suggestions section with merged+sorted content from both models", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByText("改进建议")).toBeInTheDocument();
+    // warning severity should appear before info
+    const items = screen.getAllByText(/紧凑|冲击力/);
+    expect(items.length).toBe(2);
+  });
+
+  it("should show consistency issues when present", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByText("一致性检查")).toBeInTheDocument();
+    expect(screen.getByText(/角色A在室内.*前后矛盾/)).toBeInTheDocument();
+  });
+
+  it("should not show consistency section when no issues from either model", () => {
+    const noIssues: EvaluationResultV2 = {
+      ...V2_COMPLETE,
+      deepseek: { ...V2_COMPLETE.deepseek, consistencyIssues: [] },
+    };
+    render(<ReportCard report={noIssues} />);
+    expect(screen.queryByText("一致性检查")).toBeNull();
+  });
+
+  it("should display dual token usage", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    // DeepSeek and Doubao appear in both legend and token section
+    const deepseekMatches = screen.getAllByText(/DeepSeek/);
+    expect(deepseekMatches.length).toBeGreaterThanOrEqual(2);
+    const doubaoMatches = screen.getAllByText(/Doubao/);
+    expect(doubaoMatches.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/输入 1,200/)).toBeInTheDocument();
+    expect(screen.getByText(/输出 350/)).toBeInTheDocument();
+  });
+
+  it("should render pacing curve from features", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByLabelText("节奏曲线")).toBeInTheDocument();
+  });
+
+  it("should show pacing stats from features", () => {
+    render(<ReportCard report={V2_COMPLETE} />);
+    expect(screen.getByText("变异系数 CV")).toBeInTheDocument();
+    expect(screen.getByText("0.45")).toBeInTheDocument();
+  });
+
+  it("should render filler section when filler items exist", () => {
+    const withFiller: EvaluationResultV2 = {
+      ...V2_COMPLETE,
+      features: {
+        ...V2_COMPLETE.features,
+        filler: {
+          items: [{ paragraph: 3, reason: "重复内容", suggestion: "精简" }],
+          suspiciousPairs: [],
+          truncated: false,
+        },
+      },
+    };
+    render(<ReportCard report={withFiller} />);
+    expect(screen.getByText("注水检测")).toBeInTheDocument();
+  });
+});
+
+// ── V2 partial state tests ──
+
+describe("ReportCard — V2 partial state", () => {
+  it("should show yellow warning banner with failed model name", () => {
+    render(<ReportCard report={V2_PARTIAL} />);
+    expect(screen.getByText(/部分 AI 模型暂不可用/)).toBeInTheDocument();
+    // "Doubao" appears in both banner and header subtitle
+    const doubaoMatches = screen.getAllByText(/Doubao/);
+    expect(doubaoMatches.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("should render single-model radar chart", () => {
+    render(<ReportCard report={V2_PARTIAL} />);
+    expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
+  });
+
+  it("should display single token usage", () => {
+    render(<ReportCard report={V2_PARTIAL} />);
+    expect(screen.getByText(/Token 用量：/)).toBeInTheDocument();
+    expect(screen.getByText(/输入 1,200/)).toBeInTheDocument();
+  });
+});
+
+// ── V2 degraded state tests ──
+
+describe("ReportCard — V2 degraded state", () => {
+  it("should show degraded banner", () => {
+    render(<ReportCard report={V2_DEGRADED} />);
+    expect(screen.getByText(/AI 服务暂不可用/)).toBeInTheDocument();
+    expect(screen.getByText(/基于规则引擎的分析结果/)).toBeInTheDocument();
+  });
+
+  it("should render degrade report text content", () => {
+    render(<ReportCard report={V2_DEGRADED} />);
+    expect(screen.getByText(/降级评估报告/)).toBeInTheDocument();
+    expect(screen.getByText(/开头分析/)).toBeInTheDocument();
+    expect(screen.getByText(/爽点分析/)).toBeInTheDocument();
+  });
+
+  it("should show retry button", () => {
+    const onRetry = vi.fn();
+    render(<ReportCard report={V2_DEGRADED} onRetry={onRetry} />);
+    const retryBtn = screen.getByRole("button", { name: /重新评估/ });
+    expect(retryBtn).toBeInTheDocument();
+  });
+
+  it("should call onRetry when retry button is clicked", () => {
+    const onRetry = vi.fn();
+    render(<ReportCard report={V2_DEGRADED} onRetry={onRetry} />);
+    screen.getByRole("button", { name: /重新评估/ }).click();
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("should still render rule engine sections (pacing, filler)", () => {
+    render(<ReportCard report={V2_DEGRADED} />);
+    expect(screen.getByLabelText("节奏曲线")).toBeInTheDocument();
+  });
+
+  it("should not render radar chart in degraded mode", () => {
+    render(<ReportCard report={V2_DEGRADED} />);
+    expect(screen.queryByLabelText("四维雷达图")).toBeNull();
+  });
+});
+
 describe("EmptyReport", () => {
   it("should show a guide card with action prompt", () => {
     render(<EmptyReport />);
@@ -329,7 +544,6 @@ describe("ErrorReport", () => {
   it("should show red error card with message and retry button", () => {
     const onRetry = vi.fn();
     render(<ErrorReport message="网络连接失败" onRetry={onRetry} />);
-
     expect(screen.getByText(/网络连接失败/i)).toBeInTheDocument();
     const retryBtn = screen.getByRole("button", { name: /重试/i });
     expect(retryBtn).toBeInTheDocument();
@@ -338,7 +552,6 @@ describe("ErrorReport", () => {
   it("should call onRetry when retry button is clicked", () => {
     const onRetry = vi.fn();
     render(<ErrorReport message="评估超时" onRetry={onRetry} />);
-
     screen.getByRole("button", { name: /重试/i }).click();
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

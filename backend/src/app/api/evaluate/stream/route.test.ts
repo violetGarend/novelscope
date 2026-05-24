@@ -56,15 +56,15 @@ describe("POST /api/evaluate/stream", () => {
     expect(stepNames).toEqual([
       "正在验证文本",
       "分析爽点密度",
-      "分析节奏",
+      "分析节奏与结构",
       "构建 AI 提示…",
-      "调用 AI 分析…",
+      "调用双模型 AI 分析…",
       "处理 AI 结果…",
       "生成报告",
     ]);
   });
 
-  it("should end with a result event containing scores", async () => {
+  it("should end with a result event in V2 discriminated union format", async () => {
     const req = createRequest({ chapterText: validText });
     const res = await POST(req);
 
@@ -73,9 +73,10 @@ describe("POST /api/evaluate/stream", () => {
     const resultLine = lines.find((l) => l.includes('"type":"result"'));
     expect(resultLine).toBeDefined();
     const data = JSON.parse(resultLine!.replace("data: ", ""));
-    expect(data).toHaveProperty("reportId");
-    expect(data).toHaveProperty("scores");
-    expect(data).toHaveProperty("isPartial");
+    // V2 format has status (complete/partial/degraded) and features
+    expect(data).toHaveProperty("status");
+    expect(data).toHaveProperty("features");
+    expect(["complete", "partial", "degraded"]).toContain(data.status);
   });
 
   it("should return 400 error for invalid text", async () => {

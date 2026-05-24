@@ -4,6 +4,7 @@ import type { FillerFeatures } from "../filler";
 import type { HookFeatures } from "../hook";
 import type { CliffhangerFeatures } from "../cliffhanger";
 import type { TokenUsage, LLMCallResult } from "../llm/client";
+import type { SuggestionItem } from "../llm/schema";
 
 // ── Dimension scores ──
 
@@ -45,6 +46,12 @@ export interface AllFeatures {
 
 // ── Discriminated union result ──
 
+export interface ModelQualitative {
+  highlights: string[];
+  suggestions: SuggestionItem[];
+  consistencyIssues: string[];
+}
+
 export type EvaluationResultV2 =
   | {
       status: "complete";
@@ -52,6 +59,8 @@ export type EvaluationResultV2 =
       features: AllFeatures;
       tokenUsage: DualTokenUsage;
       divergence?: DivergenceReport;
+      deepseek: ModelQualitative;
+      doubao: ModelQualitative;
     }
   | {
       status: "partial";

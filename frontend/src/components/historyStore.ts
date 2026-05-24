@@ -1,4 +1,4 @@
-import type { EvaluationReport } from "./ReportCard";
+import type { ReportData } from "./ReportCard";
 
 const STORAGE_KEY = "novelscope_history";
 const MAX_ENTRIES = 10;
@@ -8,7 +8,7 @@ export interface HistoryEntry {
   timestamp: number;
   reportId: string;
   textSummary: string;
-  fullReport?: EvaluationReport;
+  fullReport?: ReportData;
 }
 
 export function saveEvaluation(entry: HistoryEntry): void {

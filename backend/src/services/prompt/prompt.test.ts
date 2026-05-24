@@ -40,6 +40,7 @@ function createMockSignals(overrides?: {
     filler: {
       items: [],
       suspiciousPairs: [],
+      truncated: false,
       ...overrides?.filler,
     },
     hook: {

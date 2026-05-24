@@ -180,6 +180,16 @@ export function createDualModelPipeline(
             deepseek: resultA.usage,
             doubao: resultB.usage,
           },
+          deepseek: {
+            highlights: resultA.result.highlights,
+            suggestions: resultA.result.suggestions,
+            consistencyIssues: resultA.result.consistencyIssues,
+          },
+          doubao: {
+            highlights: resultB.result.highlights,
+            suggestions: resultB.result.suggestions,
+            consistencyIssues: resultB.result.consistencyIssues,
+          },
           ...(divergence.length > 0 ? { divergence } : {}),
         };
       }
