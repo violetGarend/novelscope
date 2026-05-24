@@ -2,10 +2,10 @@ import { describe, it, expect } from "@jest/globals";
 import { analyzePacing } from "./index";
 
 describe("PacingAnalyzer", () => {
-  it("should return score 0 for empty text", () => {
+  it("should return empty features for empty text", () => {
     const result = analyzePacing("");
-    expect(result.score).toBe(0);
     expect(result.curve).toEqual([]);
+    expect(result.cv).toBe(0);
   });
 
   it("should classify paragraphs and return pacing curve", () => {
@@ -22,7 +22,7 @@ describe("PacingAnalyzer", () => {
     expect(result.curve[0].tension).toBeGreaterThan(result.curve[2].tension);
   });
 
-  it("should score > 0 for mixed content", () => {
+  it("should expose typeRatio and curve for mixed content", () => {
     const text = [
       "他猛地拔出长剑，朝着敌人劈了过去。剑光一闪，寒气逼人。",
       "「你来了。」「是的，我来了。」「你终于来了。」",
@@ -32,8 +32,9 @@ describe("PacingAnalyzer", () => {
       "战斗结束了，夕阳染红了整片天空。",
     ].join("\n\n");
     const result = analyzePacing(text);
-    expect(result.score).toBeGreaterThan(0);
-    expect(result.score).toBeLessThanOrEqual(10);
+    expect(result.curve.length).toBeGreaterThan(0);
+    expect(result.cv).toBeGreaterThanOrEqual(0);
+    expect(result.typeRatio).toBeDefined();
   });
 
   it("should handle pure action text", () => {
@@ -44,7 +45,7 @@ describe("PacingAnalyzer", () => {
     ].join("\n\n");
     const result = analyzePacing(text);
     expect(result.curve.every((p) => p.type === "action")).toBe(true);
-    expect(result.score).toBeGreaterThanOrEqual(0);
+    expect(result.curve.length).toBeGreaterThan(0);
   });
 
   it("should handle pure dialogue text", () => {

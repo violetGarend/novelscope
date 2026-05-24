@@ -1,5 +1,4 @@
-export interface ClimaxResult {
-  score: number;
+export interface ClimaxFeatures {
   matchedKeywords: string[];
   keywordCategories: Record<string, string[]>;
   dialogueDensity: number;
@@ -63,9 +62,9 @@ function getConflictKeywords(): string[] {
   return KEYWORD_DICT.conflict;
 }
 
-export function analyzeClimax(text: string): ClimaxResult {
+export function analyzeClimax(text: string): ClimaxFeatures {
   if (!text || text.trim().length === 0) {
-    return { score: 0, matchedKeywords: [], keywordCategories: { reversal: [], shock: [], breakthrough: [], conflict: [], emotion: [] }, dialogueDensity: 0, conflictDensity: 0 };
+    return { matchedKeywords: [], keywordCategories: { reversal: [], shock: [], breakthrough: [], conflict: [], emotion: [] }, dialogueDensity: 0, conflictDensity: 0 };
   }
 
   const charCount = text.length;
@@ -79,21 +78,7 @@ export function analyzeClimax(text: string): ClimaxResult {
   const conflictHits = conflictKws.filter((kw) => text.includes(kw)).length;
   const conflictDensity = (conflictHits / charCount) * 1000;
 
-  // Keyword density score (0-10): more keywords per 1000 chars = higher
-  const keywordDensity = (matchedKeywords.length / charCount) * 1000;
-  const keywordScore = Math.min(10, keywordDensity * 1.5);
-
-  // Dialogue density bonus (0-2)
-  const dialogueBonus = Math.min(2, dialogueDensity * 3);
-
-  // Conflict density bonus (0-3)
-  const conflictBonus = Math.min(3, conflictDensity * 2);
-
-  const rawScore = keywordScore * 0.5 + dialogueBonus * 0.2 + conflictBonus * 0.3;
-  const score = Math.round(Math.min(10, Math.max(0, rawScore)) * 10) / 10;
-
   return {
-    score,
     matchedKeywords,
     keywordCategories,
     dialogueDensity: Math.round(dialogueDensity * 100) / 100,

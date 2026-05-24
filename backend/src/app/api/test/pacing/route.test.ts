@@ -24,8 +24,9 @@ describe("POST /api/test/pacing", () => {
     const res = await POST(createRequest({ text }));
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toHaveProperty("score");
     expect(data).toHaveProperty("curve");
+    expect(data).toHaveProperty("cv");
+    expect(data).toHaveProperty("typeRatio");
     expect(data.curve.length).toBeGreaterThan(0);
   });
 });

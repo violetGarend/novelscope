@@ -10,7 +10,7 @@ export interface SuspiciousPair {
   similarity: number;
 }
 
-export interface FillerResult {
+export interface FillerFeatures {
   items: FillerItem[];
   suspiciousPairs: SuspiciousPair[];
 }
@@ -38,7 +38,7 @@ function similarity(a: string, b: string): number {
   return (2 * intersection) / (bigramsA.size + bigramsB.size);
 }
 
-export function detectFiller(text: string): FillerResult {
+export function detectFiller(text: string): FillerFeatures {
   if (!text || text.trim().length === 0) {
     return { items: [], suspiciousPairs: [] };
   }

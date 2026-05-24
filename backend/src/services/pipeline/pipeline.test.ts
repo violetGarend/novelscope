@@ -1,19 +1,19 @@
 import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 import { createEvaluationPipeline } from "./index";
-import type { ClimaxResult } from "../climax";
-import type { PacingResult } from "../pacing";
-import type { FillerResult } from "../filler";
+import type { ClimaxFeatures } from "../climax";
+import type { PacingFeatures } from "../pacing";
+import type { FillerFeatures } from "../filler";
 import type { LLMResult } from "../llm";
 import type { LLMCallResult } from "../llm/client";
-import type { HookResult } from "../hook";
-import type { CliffhangerResult } from "../cliffhanger";
+import type { HookFeatures } from "../hook";
+import type { CliffhangerFeatures } from "../cliffhanger";
 
 // Mock dependencies
-const mockAnalyzeClimax = jest.fn<(text: string) => ClimaxResult>();
-const mockAnalyzePacing = jest.fn<(text: string) => PacingResult>();
-const mockDetectFiller = jest.fn<(text: string) => FillerResult>();
-const mockAnalyzeHook = jest.fn<(text: string) => HookResult>();
-const mockAnalyzeCliffhanger = jest.fn<(text: string) => CliffhangerResult>();
+const mockAnalyzeClimax = jest.fn<(text: string) => ClimaxFeatures>();
+const mockAnalyzePacing = jest.fn<(text: string) => PacingFeatures>();
+const mockDetectFiller = jest.fn<(text: string) => FillerFeatures>();
+const mockAnalyzeHook = jest.fn<(text: string) => HookFeatures>();
+const mockAnalyzeCliffhanger = jest.fn<(text: string) => CliffhangerFeatures>();
 const mockEvaluateWithLLM = jest.fn<(text: string, prompt: string) => Promise<LLMCallResult>>();
 
 function wrapLLMResult(result: LLMResult, usage?: { promptTokens: number; completionTokens: number }): LLMCallResult {
@@ -23,25 +23,22 @@ function wrapLLMResult(result: LLMResult, usage?: { promptTokens: number; comple
   };
 }
 
-const MOCK_CLIMAX_RESULT: ClimaxResult = {
-  score: 8,
+const MOCK_CLIMAX_RESULT: ClimaxFeatures = {
   matchedKeywords: ["打脸", "碾压"],
   keywordCategories: { reversal: ["打脸", "碾压"], shock: [], breakthrough: [], conflict: [], emotion: [] },
   dialogueDensity: 0.5,
   conflictDensity: 0.3,
 };
 
-const MOCK_PACING_RESULT: PacingResult = {
-  score: 7,
+const MOCK_PACING_RESULT: PacingFeatures = {
   curve: [{ paragraph: 1, tension: 5, type: "dialogue" }],
   cv: 0.45,
   typeRatio: { action: 0, dialogue: 1, description: 0 },
 };
 
-const MOCK_FILLER_RESULT: FillerResult = { items: [], suspiciousPairs: [] };
+const MOCK_FILLER_RESULT: FillerFeatures = { items: [], suspiciousPairs: [] };
 
-const MOCK_HOOK_RESULT: HookResult = {
-  score: 6,
+const MOCK_HOOK_RESULT: HookFeatures = {
   openingType: "conflict",
   hasQuestion: false,
   hasGoldenLine: false,
@@ -49,8 +46,7 @@ const MOCK_HOOK_RESULT: HookResult = {
   suspenseHitCount: 1,
 };
 
-const MOCK_CLIFFHANGER_RESULT: CliffhangerResult = {
-  score: 5,
+const MOCK_CLIFFHANGER_RESULT: CliffhangerFeatures = {
   endingType: "suspense",
   hasQuestion: false,
   hasReversalHint: false,
@@ -181,13 +177,13 @@ describe("EvaluationPipeline", () => {
     // Act
     const result = await pipeline.evaluateChapter("测试文本");
 
-    // Assert — 降级到规则引擎分数
+    // Assert — 降级到 0（规则引擎已转型为特征提取器，不再产出分数）
     expect(result.isPartial).toBe(true);
     expect(result.llmResult).toBeNull();
-    expect(result.scores.climaxScore).toBe(8); // from rule engine
-    expect(result.scores.pacingScore).toBe(7); // from rule engine
-    expect(result.scores.hookScore).toBe(6); // from hook rule engine (no longer 0)
-    expect(result.scores.cliffhangerScore).toBe(5); // from cliffhanger rule engine (no longer 0)
+    expect(result.scores.climaxScore).toBe(0);
+    expect(result.scores.pacingScore).toBe(0);
+    expect(result.scores.hookScore).toBe(0);
+    expect(result.scores.cliffhangerScore).toBe(0);
     expect(result.hookSource).toBe("rule");
     expect(result.cliffhangerSource).toBe("rule");
   });

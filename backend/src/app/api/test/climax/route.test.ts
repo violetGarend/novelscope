@@ -24,10 +24,9 @@ describe("POST /api/test/climax", () => {
     const res = await POST(req);
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toHaveProperty("score");
     expect(data).toHaveProperty("matchedKeywords");
     expect(data).toHaveProperty("dialogueDensity");
     expect(data).toHaveProperty("conflictDensity");
-    expect(data.score).toBeGreaterThan(0);
+    expect(data.matchedKeywords.length).toBeGreaterThan(0);
   });
 });

@@ -1,5 +1,4 @@
-export interface CliffhangerResult {
-  score: number;
+export interface CliffhangerFeatures {
   endingType: "suspense" | "question" | "emotional" | "reversal" | "action" | "flat";
   hasQuestion: boolean;
   hasReversalHint: boolean;
@@ -48,10 +47,9 @@ function hasAnyKeyword(text: string, keywords: string[]): boolean {
   return keywords.some((k) => text.includes(k));
 }
 
-export function analyzeCliffhanger(text: string): CliffhangerResult {
+export function analyzeCliffhanger(text: string): CliffhangerFeatures {
   if (!text || text.trim().length === 0) {
     return {
-      score: 0,
       endingType: "flat",
       hasQuestion: false,
       hasReversalHint: false,
@@ -63,7 +61,6 @@ export function analyzeCliffhanger(text: string): CliffhangerResult {
   const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
     return {
-      score: 0,
       endingType: "flat",
       hasQuestion: false,
       hasReversalHint: false,
@@ -84,7 +81,7 @@ export function analyzeCliffhanger(text: string): CliffhangerResult {
   const endsWithQuestion = hasQuestion(lastParagraph);
 
   // Determine ending type
-  let endingType: CliffhangerResult["endingType"];
+  let endingType: CliffhangerFeatures["endingType"];
   if (endsWithQuestion) {
     endingType = "question";
   } else if (hasReversal) {
@@ -99,27 +96,7 @@ export function analyzeCliffhanger(text: string): CliffhangerResult {
     endingType = "flat";
   }
 
-  // Score composition (0-10):
-  // - Suspense keywords in ending: 0-3 (hits × 0.75, cap at 3)
-  // - Unresolved conflict: 0-2 (conflict without resolution)
-  // - Reversal hint: 0-2 (twist incoming)
-  // - Question ending: 0-2 (most explicit cliffhanger)
-  // - Emotional hook: 0-1 (strong emotion at end)
-
-  const suspenseScore = Math.min(3, suspenseHits * 0.75);
-  const unresolvedScore = (hasUnresolvedConflict && !hasResolution) ? 2 : 0;
-  const reversalScore = hasReversal ? 2 : 0;
-  const questionScore = endsWithQuestion ? 2 : 0;
-  const emotionScore = hasEmotion ? 1 : 0;
-
-  // Penalty for resolution (chapter feels "finished")
-  const resolutionPenalty = hasResolution ? -2 : 0;
-
-  const rawScore = suspenseScore + unresolvedScore + reversalScore + questionScore + emotionScore + resolutionPenalty;
-  const score = Math.round(Math.min(10, Math.max(0, rawScore)) * 10) / 10;
-
   return {
-    score,
     endingType,
     hasQuestion: endsWithQuestion,
     hasReversalHint: hasReversal,

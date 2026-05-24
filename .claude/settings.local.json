@@ -17,7 +17,8 @@
       "Read(//tmp/**)",
       "mcp__chrome-devtools__get_network_request",
       "Bash(rm -rf .next)",
-      "Bash(npx kill-port *)"
+      "Bash(npx kill-port *)",
+      "Bash(npx eslint *)"
     ]
   },
   "hooks": {

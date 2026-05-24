@@ -1,19 +1,19 @@
-import type { ClimaxResult } from "../climax";
-import type { PacingResult } from "../pacing";
-import type { FillerResult } from "../filler";
-import type { HookResult } from "../hook";
-import type { CliffhangerResult } from "../cliffhanger";
+import type { ClimaxFeatures } from "../climax";
+import type { PacingFeatures } from "../pacing";
+import type { FillerFeatures } from "../filler";
+import type { HookFeatures } from "../hook";
+import type { CliffhangerFeatures } from "../cliffhanger";
 import type { LLMResult } from "../llm";
 import type { LLMCallResult, TokenUsage } from "../llm/client";
 import { guardScores, type ValidatedScores } from "../guard";
 import { buildEvaluationPrompt, type SignalData } from "../prompt";
 
 export interface EvaluationResult {
-  climaxResult: ClimaxResult;
-  pacingResult: PacingResult;
-  fillerResult: FillerResult;
-  hookResult: HookResult | null;
-  cliffhangerResult: CliffhangerResult | null;
+  climaxResult: ClimaxFeatures;
+  pacingResult: PacingFeatures;
+  fillerResult: FillerFeatures;
+  hookResult: HookFeatures | null;
+  cliffhangerResult: CliffhangerFeatures | null;
   llmResult: LLMResult | null;
   scores: ValidatedScores;
   isPartial: boolean;
@@ -32,11 +32,11 @@ export interface PipelineOptions {
 }
 
 export interface PipelineDependencies {
-  analyzeClimax: (text: string) => ClimaxResult;
-  analyzePacing: (text: string) => PacingResult;
-  detectFiller: (text: string) => FillerResult;
-  analyzeHook: (text: string) => HookResult;
-  analyzeCliffhanger: (text: string) => CliffhangerResult;
+  analyzeClimax: (text: string) => ClimaxFeatures;
+  analyzePacing: (text: string) => PacingFeatures;
+  detectFiller: (text: string) => FillerFeatures;
+  analyzeHook: (text: string) => HookFeatures;
+  analyzeCliffhanger: (text: string) => CliffhangerFeatures;
   evaluateWithLLM: (text: string, prompt: string) => Promise<LLMCallResult>;
 }
 
@@ -71,8 +71,11 @@ export function createEvaluationPipeline(
         climax: climaxResult,
         pacing: pacingResult,
         filler: fillerResult,
+        hook: hookResult,
+        cliffhanger: cliffhangerResult,
       };
-      const prompt = buildEvaluationPrompt(signals);
+      const promptResult = buildEvaluationPrompt(signals);
+      const prompt = promptResult.prompt;
 
       // 步骤 4：构建 AI 提示
       notify?.({ step: 4, stepName: "构建 AI 提示…" });
@@ -93,11 +96,12 @@ export function createEvaluationPipeline(
       const hookSource: "llm" | "rule" = llmResult?.hookScore != null ? "llm" : "rule";
       const cliffhangerSource: "llm" | "rule" = llmResult?.cliffhangerScore != null ? "llm" : "rule";
 
+      // Fallback to 0 when rule engines are feature-only (no scores)
       const rawScores = {
-        hookScore: llmResult?.hookScore ?? hookResult.score,
-        climaxScore: llmResult?.climaxScore ?? climaxResult.score,
-        cliffhangerScore: llmResult?.cliffhangerScore ?? cliffhangerResult.score,
-        pacingScore: llmResult?.pacingScore ?? pacingResult.score,
+        hookScore: llmResult?.hookScore ?? 0,
+        climaxScore: llmResult?.climaxScore ?? 0,
+        cliffhangerScore: llmResult?.cliffhangerScore ?? 0,
+        pacingScore: llmResult?.pacingScore ?? 0,
       };
 
       const scores = guardScores(rawScores);

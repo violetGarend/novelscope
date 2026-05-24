@@ -1,5 +1,4 @@
-export interface HookResult {
-  score: number;
+export interface HookFeatures {
   openingType: "conflict" | "suspense" | "dialogue" | "description" | "mixed";
   hasQuestion: boolean;
   hasGoldenLine: boolean;
@@ -52,7 +51,7 @@ function isGoldenLine(paragraph: string): boolean {
   return goldenPatterns.some((p) => trimmed.includes(p));
 }
 
-function classifyOpeningType(paragraphs: string[]): HookResult["openingType"] {
+function classifyOpeningType(paragraphs: string[]): HookFeatures["openingType"] {
   const firstTwo = paragraphs.slice(0, 2).join("\n");
   const hasConflict = CONFLICT_KEYWORDS.some((k) => firstTwo.includes(k));
   const hasSuspense = SUSPENSE_KEYWORDS.some((k) => firstTwo.includes(k));
@@ -65,10 +64,9 @@ function classifyOpeningType(paragraphs: string[]): HookResult["openingType"] {
   return "description";
 }
 
-export function analyzeHook(text: string): HookResult {
+export function analyzeHook(text: string): HookFeatures {
   if (!text || text.trim().length === 0) {
     return {
-      score: 0,
       openingType: "description",
       hasQuestion: false,
       hasGoldenLine: false,
@@ -81,7 +79,6 @@ export function analyzeHook(text: string): HookResult {
   const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
     return {
-      score: 0,
       openingType: "description",
       hasQuestion: false,
       hasGoldenLine: false,
@@ -100,25 +97,7 @@ export function analyzeHook(text: string): HookResult {
   const goldenLine = openingParas.some(isGoldenLine);
   const openingType = classifyOpeningType(openingParas);
 
-  // Score composition (0-10):
-  // - Conflict in opening: 0-4 (conflict hits × 1.0, cap at 4)
-  // - Suspense in opening: 0-3 (suspense hits × 0.75, cap at 3)
-  // - Question hook: 0-2 (bonus for opening with question)
-  // - Golden line: 0-1 (bonus for memorable line)
-
-  const conflictScore = Math.min(4, conflictHits * 1.0);
-  const suspenseScore = Math.min(3, suspenseHits * 0.75);
-  const questionScore = questionInOpening ? Math.min(2, openingParas.filter(hasQuestion).length * 1.0) : 0;
-  const goldenScore = goldenLine ? 1 : 0;
-
-  // Bonus for strong opening types
-  const typeBonus = openingType === "conflict" ? 0.5 : openingType === "mixed" ? 1.0 : 0;
-
-  const rawScore = conflictScore + suspenseScore + questionScore + goldenScore + typeBonus;
-  const score = Math.round(Math.min(10, Math.max(0, rawScore)) * 10) / 10;
-
   return {
-    score,
     openingType,
     hasQuestion: questionInOpening,
     hasGoldenLine: goldenLine,

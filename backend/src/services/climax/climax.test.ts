@@ -2,10 +2,11 @@ import { describe, it, expect } from "@jest/globals";
 import { analyzeClimax, KEYWORD_DICT } from "./index";
 
 describe("ClimaxAnalyzer", () => {
-  it("should return score 0 for empty text", () => {
+  it("should return empty features for empty text", () => {
     const result = analyzeClimax("");
-    expect(result.score).toBe(0);
     expect(result.matchedKeywords).toEqual([]);
+    expect(result.dialogueDensity).toBe(0);
+    expect(result.conflictDensity).toBe(0);
   });
 
   it("should have keyword dictionary with 5 categories", () => {
@@ -21,13 +22,14 @@ describe("ClimaxAnalyzer", () => {
     }
   });
 
-  it("should score > 0 for text with climax keywords", () => {
+  it("should detect keywords for text with climax content", () => {
     const text =
       "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。" +
       "这一战，他彻底翻身逆袭，从此踏上巅峰之路。热血沸腾的战斗，让所有人都震撼不已。";
     const result = analyzeClimax(text);
-    expect(result.score).toBeGreaterThan(0);
     expect(result.matchedKeywords.length).toBeGreaterThan(0);
+    expect(result.matchedKeywords).toContain("碾压");
+    expect(result.matchedKeywords).toContain("逆袭");
   });
 
   it("should detect high dialogue density for pure dialogue text", () => {
@@ -40,8 +42,9 @@ describe("ClimaxAnalyzer", () => {
 
   it("should not crash on very short text", () => {
     const result = analyzeClimax("一句话。");
-    expect(result.score).toBeGreaterThanOrEqual(0);
-    expect(result.score).toBeLessThanOrEqual(10);
+    expect(result.matchedKeywords).toBeDefined();
+    expect(result.dialogueDensity).toBeGreaterThanOrEqual(0);
+    expect(result.conflictDensity).toBeGreaterThanOrEqual(0);
   });
 
   it("should expose keywordCategories grouped by category", () => {

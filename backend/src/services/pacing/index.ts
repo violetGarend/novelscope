@@ -4,8 +4,7 @@ export interface PacingCurvePoint {
   type: "action" | "dialogue" | "description";
 }
 
-export interface PacingResult {
-  score: number;
+export interface PacingFeatures {
   curve: PacingCurvePoint[];
   cv: number;
   typeRatio: { action: number; dialogue: number; description: number };
@@ -74,15 +73,15 @@ function downsampleCurve(curve: PacingCurvePoint[]): PacingCurvePoint[] {
   return sampled;
 }
 
-export function analyzePacing(text: string): PacingResult {
+export function analyzePacing(text: string): PacingFeatures {
   if (!text || text.trim().length === 0) {
-    return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
+    return { curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }
 
   const normalized = text.replace(/\r\n/g, "\n");
   const paragraphs = normalized.split(/\n\n+/).filter((p) => p.trim().length > 0);
   if (paragraphs.length === 0) {
-    return { score: 0, curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
+    return { curve: [], cv: 0, typeRatio: { action: 0, dialogue: 0, description: 0 } };
   }
 
   const curve: PacingCurvePoint[] = paragraphs.map((p, i) => {
@@ -93,13 +92,6 @@ export function analyzePacing(text: string): PacingResult {
 
   const lengths = paragraphs.map((p) => p.length);
   const cv = calculateCV(lengths);
-  const ratioScore = calculateRatioScore(curve);
-
-  // CV score: higher CV = more varied pacing = better (cap at 1.0)
-  const cvScore = Math.min(10, cv * 10);
-
-  const rawScore = cvScore * 0.4 + ratioScore * 0.6;
-  const score = Math.round(Math.min(10, Math.max(0, rawScore)) * 10) / 10;
 
   const counts = { action: 0, dialogue: 0, description: 0 };
   for (const p of curve) counts[p.type]++;
@@ -110,5 +102,5 @@ export function analyzePacing(text: string): PacingResult {
     description: Math.round((counts.description / total) * 100) / 100,
   };
 
-  return { score, curve: downsampleCurve(curve), cv: Math.round(cv * 100) / 100, typeRatio };
+  return { curve: downsampleCurve(curve), cv: Math.round(cv * 100) / 100, typeRatio };
 }

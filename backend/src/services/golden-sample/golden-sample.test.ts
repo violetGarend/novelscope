@@ -25,7 +25,6 @@ function makeValidatedScores(overrides?: Partial<ValidatedScores>): ValidatedSco
 function makeMockEvalResult(scores: ValidatedScores, isPartial = false): EvalResult {
   return {
     climaxResult: {
-      score: scores.climaxScore,
       matchedKeywords: [],
       keywordCategories: {
         reversal: [],
@@ -38,14 +37,13 @@ function makeMockEvalResult(scores: ValidatedScores, isPartial = false): EvalRes
       conflictDensity: 0,
     },
     pacingResult: {
-      score: scores.pacingScore,
       curve: [],
       cv: 0,
       typeRatio: { action: 0, dialogue: 0, description: 0 },
     },
     fillerResult: { items: [], suspiciousPairs: [] },
-    hookResult: { score: scores.hookScore, openingType: "description", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 0, suspenseHitCount: 0 },
-    cliffhangerResult: { score: scores.cliffhangerScore, endingType: "flat", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 0 },
+    hookResult: { openingType: "description", hasQuestion: false, hasGoldenLine: false, conflictHitCount: 0, suspenseHitCount: 0 },
+    cliffhangerResult: { endingType: "flat", hasQuestion: false, hasReversalHint: false, suspenseHitCount: 0 },
     llmResult: isPartial
       ? null
       : {
