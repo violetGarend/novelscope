@@ -12,36 +12,10 @@ import type {
 } from "./types";
 import type { SignalData } from "../prompt";
 import { buildEvaluationPrompt } from "../prompt";
-import { guardScores, type ValidatedScores } from "../guard";
+import { guardScores, detectDivergence, type ValidatedScores } from "../guard";
+import { generateDegradeReport } from "../degrade-report";
 import type { LLMCallResult } from "../llm/client";
 import type { TokenUsage } from "../llm/client";
-
-// ── Divergence detection ──
-
-export function detectDivergence(a: DimensionScores, b: DimensionScores): DivergenceReport {
-  const dimensions: Array<{ key: string; label: string }> = [
-    { key: "hookScore", label: "hookScore" },
-    { key: "climaxScore", label: "climaxScore" },
-    { key: "cliffhangerScore", label: "cliffhangerScore" },
-    { key: "pacingScore", label: "pacingScore" },
-  ];
-
-  const report: DivergenceReport = [];
-  for (const { key } of dimensions) {
-    const va = a[key as keyof DimensionScores];
-    const vb = b[key as keyof DimensionScores];
-    const delta = Math.abs(va - vb);
-    if (delta > 2) {
-      report.push({
-        dimension: key,
-        deepseek: va,
-        doubao: vb,
-        delta,
-      });
-    }
-  }
-  return report;
-}
 
 // ── Score merging ──
 
@@ -53,75 +27,6 @@ export function pickScores(a: DimensionScores, b: DimensionScores): ValidatedSco
     pacingScore: Math.round(((a.pacingScore + b.pacingScore) / 2) * 10) / 10,
   };
   return guardScores(raw);
-}
-
-// ── Degraded report (template NLG — final fallback) ──
-
-export function generateDegradedReport(features: AllFeatures, reason: string): string {
-  const lines: string[] = [];
-  lines.push("【AI 评估暂不可用 — 以下为规则引擎自动分析】");
-  lines.push("");
-  lines.push(`原因: ${reason}`);
-  lines.push("");
-
-  // Hook section
-  const hookTypeLabels: Record<string, string> = {
-    conflict: "冲突开场",
-    suspense: "悬念开场",
-    dialogue: "对话开场",
-    description: "描写开场",
-    mixed: "混合开场",
-  };
-  lines.push("## 开头分析");
-  lines.push(`开头类型为"${hookTypeLabels[features.hook.openingType] ?? features.hook.openingType}"，`);
-  lines.push(`冲突关键词命中 ${features.hook.conflictHitCount} 处，悬念关键词命中 ${features.hook.suspenseHitCount} 处。`);
-  lines.push(features.hook.hasGoldenLine ? "检测到金句。" : "未检测到标志性金句。");
-  lines.push("");
-
-  // Climax section
-  lines.push("## 爽点分析");
-  if (features.climax.matchedKeywords.length > 0) {
-    lines.push(`命中爽点关键词: ${features.climax.matchedKeywords.join("、")}`);
-  } else {
-    lines.push("未命中爽点关键词。");
-  }
-  lines.push(`对话密度: ${features.climax.dialogueDensity}，冲突密度: ${features.climax.conflictDensity}`);
-  lines.push("");
-
-  // Pacing section
-  lines.push("## 节奏分析");
-  lines.push(`段落数: ${features.pacing.curve.length}，变异系数: ${features.pacing.cv}`);
-  lines.push(`动作/对话/描写比例: ${Math.round(features.pacing.typeRatio.action * 100)}%/${Math.round(features.pacing.typeRatio.dialogue * 100)}%/${Math.round(features.pacing.typeRatio.description * 100)}%`);
-  lines.push("");
-
-  // Filler section
-  lines.push("## 注水检测");
-  if (features.filler.items.length > 0) {
-    lines.push(`检测到 ${features.filler.items.length} 处疑似注水段落。`);
-  } else {
-    lines.push("未检测到明显注水。");
-  }
-  lines.push("");
-
-  // Cliffhanger section
-  const endingTypeLabels: Record<string, string> = {
-    suspense: "悬念收尾",
-    question: "疑问收尾",
-    emotional: "情绪收尾",
-    reversal: "反转收尾",
-    action: "行动收尾",
-    flat: "平坦收尾",
-  };
-  lines.push("## 章末悬念");
-  lines.push(`结尾类型为"${endingTypeLabels[features.cliffhanger.endingType] ?? features.cliffhanger.endingType}"，`);
-  lines.push(`悬念关键词命中 ${features.cliffhanger.suspenseHitCount} 处。`);
-  lines.push(features.cliffhanger.hasReversalHint ? "检测到反转暗示。" : "未检测到明确反转暗示。");
-  lines.push("");
-
-  lines.push("---");
-  lines.push("*以上为规则引擎自动分析，AI 深度评估暂时不可用。请稍后重试。*");
-
-  return lines.join("\n");
 }
 
 // ── Dual model orchestrator ──
@@ -315,7 +220,7 @@ export function createDualModelPipeline(
       }
 
       // Both failed — degraded fallback
-      const report = generateDegradedReport(features, "双模型均不可用（超时或API错误）");
+      const report = generateDegradeReport(features, "双模型均不可用（超时或API错误）");
 
       return {
         status: "degraded",

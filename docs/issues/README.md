@@ -62,8 +62,8 @@ LLM 启用阶段（新增）:
 
 | # | 切片 | 类型 | 依赖 | 状态 |
 |---|------|------|------|------|
-| p1-001 | [安全修复 — API key 轮换 + git 历史清理 + env 校验](P1/p1-001-security-fix.md) | AFK | — | ⏳ 待开始 |
-| p1-002 | [CORS 中间件 + CI/CD](P1/p1-002-cors-ci.md) | AFK | — | ⏳ 待开始 |
+| p1-001 | [安全修复 — API key 轮换 + git 历史清理 + env 校验](P1/p1-001-security-fix.md) | AFK | — | ✅ 完成 |
+| p1-002 | [CORS 中间件 + CI/CD](P1/p1-002-cors-ci.md) | AFK | — | ✅ 完成 |
 
 ### P1.1 规则引擎 v2 重构（8 个 Issue：p1-003~010）
 
@@ -75,8 +75,8 @@ LLM 启用阶段（新增）:
 | p1-004 | [Prompt v2 — 6 锚点评分 + 特征注入 + 软化分布](P1/p1-004-prompt-v2-anchors.md) | AFK | p1-003 | ✅ 完成 |
 | p1-005 | [校准 CLI + Prompt v2 验证（P1 Gate）](P1/p1-005-calibration-cli-gate.md) | AFK | p1-004 | ✅ 完成 |
 | p1-006 | [双模型编排 + 降级路径](P1/p1-006-dual-model-orchestration.md) | AFK | p1-005（条件：校准通过） | ✅ 完成 |
-| p1-007 | [Guard 扩展 — 分歧检测](P1/p1-007-guard-divergence.md) | AFK | p1-006 | ⏳ 待开始 |
-| p1-008 | [Degrade-Report 独立服务 — 模板 NLG](P1/p1-008-degrade-report-service.md) | AFK | — | ⏳ 待开始 |
+| p1-007 | [Guard 扩展 — 分歧检测](P1/p1-007-guard-divergence.md) | AFK | p1-006 | ✅ 完成 |
+| p1-008 | [Degrade-Report 独立服务 — 模板 NLG](P1/p1-008-degrade-report-service.md) | AFK | — | ✅ 完成 |
 | p1-009 | [Filler O(n²) 性能优化](P1/p1-009-filler-performance.md) | AFK | — | ⏳ 待开始 |
 | p1-010 | [前端适配新数据结构 — 双模型雷达图 + 降级 UI](P1/p1-010-frontend-v2-adaptation.md) | AFK | p1-003, p1-006, p1-008 | ⏳ 待开始 |
 

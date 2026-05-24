@@ -1,3 +1,5 @@
+import type { DimensionScores, DivergenceReport } from "../pipeline/types";
+
 export interface RawScores {
   hookScore: number;
   climaxScore: number;
@@ -44,4 +46,34 @@ export function checkVariance(scores: number[]): VarianceResult {
     variance: Math.round(variance * 100) / 100,
     isWithinBudget: variance < VARIANCE_THRESHOLD,
   };
+}
+
+// ── Divergence detection (independent of clamp/variance) ──
+
+const DIVERGENCE_THRESHOLD = 2;
+
+const DIVERGENCE_DIMENSIONS: Array<{ key: keyof DimensionScores }> = [
+  { key: "hookScore" },
+  { key: "climaxScore" },
+  { key: "cliffhangerScore" },
+  { key: "pacingScore" },
+];
+
+export function detectDivergence(a: DimensionScores, b: DimensionScores): DivergenceReport {
+  const report: DivergenceReport = [];
+  for (const { key } of DIVERGENCE_DIMENSIONS) {
+    const va = a[key];
+    const vb = b[key];
+    const delta = Math.round(Math.abs(va - vb) * 10) / 10;
+    if (delta > DIVERGENCE_THRESHOLD) {
+      report.push({
+        dimension: key,
+        deepseek: va,
+        doubao: vb,
+        delta,
+      });
+      console.warn(`[Divergence] ${key}: DeepSeek=${va}, Doubao=${vb}, delta=${delta}`);
+    }
+  }
+  return report;
 }

@@ -13,12 +13,12 @@
 
 ## Acceptance criteria
 
-- [ ] DeepSeek 控制台中 API key 已轮换为新 key
-- [ ] git 历史中不再包含旧 API key（`git log -p | grep sk-` 无结果）
-- [ ] `.env.example` 仅含占位符，不含真实 key
-- [ ] `backend/src/lib/env.ts` 在启动时校验 DATABASE_URL 和 DEEPSEEK_API_KEY，缺失时抛出清晰错误
-- [ ] Pre-commit hook 检测到 API key 模式时阻止提交并给出提示
-- [ ] 已有 289 个测试全部通过（无回归）
+- [x] DeepSeek 控制台中 API key 已轮换为新 key
+- [x] git 历史中不再包含旧 API key（`git log -p | grep sk-` 无结果）
+- [x] `.env.example` 仅含占位符，不含真实 key
+- [x] `backend/src/lib/env.ts` 在启动时校验 DATABASE_URL 和 DEEPSEEK_API_KEY，缺失时抛出清晰错误
+- [x] Pre-commit hook 检测到 API key 模式时阻止提交并给出提示
+- [x] 已有 289 个测试全部通过（无回归）
 
 ## Blocked by
 

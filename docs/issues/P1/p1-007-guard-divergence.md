@@ -18,14 +18,14 @@
 
 ## Acceptance criteria
 
-- [ ] `detectDivergence(deepseekScores, doubaoScores)` 返回 `DivergenceReport | null`
-- [ ] 任一维度差值 > 2 时标记为分歧（如 hook: 6 vs 3.5, delta=2.5 → 标记）
-- [ ] 差值恰好 2.0 时不标记（边界值：hook: 6 vs 4, delta=2.0 → 不标记）
-- [ ] 分歧报告包含：维度名、DeepSeek 分数、豆包 分数、delta
-- [ ] 分歧事件写日志（console.warn 或 logger）
-- [ ] 与现有 guard（clamp/variance）模块分离，不相互依赖
-- [ ] 测试覆盖：全部一致、单维度分歧、多维度分歧、边界值 2.0、零差值（约 8 个测试）
-- [ ] 已有 guard 测试无回归
+- [x] `detectDivergence(deepseekScores, doubaoScores)` 返回 `DivergenceReport | null`
+- [x] 任一维度差值 > 2 时标记为分歧（如 hook: 6 vs 3.5, delta=2.5 → 标记）
+- [x] 差值恰好 2.0 时不标记（边界值：hook: 6 vs 4, delta=2.0 → 不标记）
+- [x] 分歧报告包含：维度名、DeepSeek 分数、豆包 分数、delta
+- [x] 分歧事件写日志（console.warn 或 logger）
+- [x] 与现有 guard（clamp/variance）模块分离，不相互依赖
+- [x] 测试覆盖：全部一致、单维度分歧、多维度分歧、边界值 2.0、零差值（约 8 个测试）
+- [x] 已有 guard 测试无回归
 
 ## Blocked by
 

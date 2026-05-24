@@ -14,12 +14,12 @@
 
 ## Acceptance criteria
 
-- [ ] 所有 API 路由移除 OPTIONS handler 和 CORS_HEADERS import
-- [ ] CORS 中间件正确处理 OPTIONS 预检请求（返回 204 + CORS 头）
-- [ ] CORS 中间件为所有非 OPTIONS 请求添加 CORS 头
-- [ ] CI 流水线在 PR 时自动运行 lint + typecheck + test
-- [ ] CI 流水线状态 badge 显示在 README 中
-- [ ] 已有 289 个测试全部通过
+- [x] 所有 API 路由移除 OPTIONS handler 和 CORS_HEADERS import
+- [x] CORS 中间件正确处理 OPTIONS 预检请求（返回 204 + CORS 头）
+- [x] CORS 中间件为所有非 OPTIONS 请求添加 CORS 头
+- [x] CI 流水线在 PR 时自动运行 lint + typecheck + test
+- [x] CI 流水线状态 badge 显示在 README 中
+- [x] 已有 289 个测试全部通过
 
 ## Blocked by
 

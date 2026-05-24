@@ -18,7 +18,8 @@
       "mcp__chrome-devtools__get_network_request",
       "Bash(rm -rf .next)",
       "Bash(npx kill-port *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)"
     ]
   },
   "hooks": {
@@ -28,7 +29,7 @@
         "hooks": [
           {
             "type": "agent",
-            "prompt": "检测到 git commit 完成。请执行以下步骤：1) 检查最近的 git log 确定完成的 issue 编号；2) 读取 CLAUDE.md 并更新开发进度部分，添加新完成的 issue 记录；3) 读取对应的 docs/issues/XXX-*.md 文件，将 Acceptance criteria 中的 `- [ ]` 全部改为 `- [x]`。可以修改 CLAUDE.md 和 docs/issues/ 下的文件。",
+            "prompt": "检测到 git commit 完成。请执行以下步骤同步所有相关 md 文件：\n\n1) 读取 git log（最近 3 条 commit）确定完成的 issue 编号（如 p1-007、p1-008 等）\n\n2) 读取 docs/issues/README.md，找到对应 issue 的行，将状态列的 `⏳ 待开始` 或 `🔄 进行中` 改为 `✅ 完成`\n\n3) 读取对应 docs/issues/XXX-*.md 文件（如 P1/p1-007-guard-divergence.md），将 Acceptance criteria 中的 `- [ ]` 全部改为 `- [x]`\n\n4) 读取 CLAUDE.md，检查\"已完成\"部分是否需要新增该 issue 记录；如果 CLAUDE.md 中有测试数量统计，根据本次改动更新测试数量\n\n注意：所有文件路径均相对于项目根目录 D:\\AI\\AI代码\\AI写小说。可以修改 docs/issues/README.md、docs/issues/ 下的 issue 文件和 CLAUDE.md。",
             "if": "Bash(git commit *)"
           }
         ]

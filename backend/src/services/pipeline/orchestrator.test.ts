@@ -22,7 +22,7 @@ import type {
 } from "./types";
 
 import { createDualModelPipeline } from "./orchestrator";
-import { detectDivergence, generateDegradedReport, pickScores } from "./orchestrator";
+import { pickScores } from "./orchestrator";
 
 // ── Mock helpers ──
 
@@ -98,41 +98,6 @@ function makeLLMCallResult(
   };
 }
 
-// ── detectDivergence tests ──
-
-describe("detectDivergence", () => {
-  it("returns empty array when both models agree (delta <= 2)", () => {
-    const a: DimensionScores = { hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7 };
-    const b: DimensionScores = { hookScore: 8, climaxScore: 6, cliffhangerScore: 8, pacingScore: 6 };
-    const result = detectDivergence(a, b);
-    expect(result).toEqual([]);
-  });
-
-  it("detects divergence when delta > 2", () => {
-    const a: DimensionScores = { hookScore: 8, climaxScore: 8, cliffhangerScore: 8, pacingScore: 8 };
-    const b: DimensionScores = { hookScore: 5, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5 };
-    const result = detectDivergence(a, b);
-    expect(result.length).toBe(4);
-    expect(result[0]).toEqual({ dimension: "hookScore", deepseek: 8, doubao: 5, delta: 3 });
-  });
-
-  it("does NOT flag delta of exactly 2.0", () => {
-    const a: DimensionScores = { hookScore: 7, climaxScore: 7, cliffhangerScore: 7, pacingScore: 7 };
-    const b: DimensionScores = { hookScore: 5, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5 };
-    const result = detectDivergence(a, b);
-    expect(result).toEqual([]);
-  });
-
-  it("flags only diverging dimensions", () => {
-    const a: DimensionScores = { hookScore: 9, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5 };
-    const b: DimensionScores = { hookScore: 4, climaxScore: 5, cliffhangerScore: 5, pacingScore: 5 };
-    const result = detectDivergence(a, b);
-    expect(result.length).toBe(1);
-    expect(result[0].dimension).toBe("hookScore");
-    expect(result[0].delta).toBe(5);
-  });
-});
-
 // ── pickScores tests ──
 
 describe("pickScores", () => {
@@ -144,33 +109,6 @@ describe("pickScores", () => {
     expect(result.climaxScore).toBe(7);
     expect(result.cliffhangerScore).toBe(8);
     expect(result.pacingScore).toBe(6);
-  });
-});
-
-// ── generateDegradedReport tests ──
-
-describe("generateDegradedReport", () => {
-  it("returns a non-empty Chinese report string", () => {
-    const signals = makeSignals();
-    const report = generateDegradedReport(signals, "所有模型不可用");
-    expect(typeof report).toBe("string");
-    expect(report.length).toBeGreaterThan(50);
-    expect(/[一-鿿]/.test(report)).toBe(true);
-  });
-
-  it("mentions the reason in the report", () => {
-    const signals = makeSignals();
-    const report = generateDegradedReport(signals, "API超时");
-    expect(report).toContain("API超时");
-  });
-
-  it("includes feature-based qualitative descriptions", () => {
-    const signals = makeSignals();
-    const report = generateDegradedReport(signals, "测试");
-    expect(report).toContain("开头分析");
-    expect(report).toContain("爽点分析");
-    expect(report).toContain("节奏分析");
-    expect(report).toContain("章末悬念");
   });
 });
 

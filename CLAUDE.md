@@ -38,7 +38,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 单人+AI辅助开发。当前处于 Phase 0（验证期），核心评估管线已完整交付。
 
-**已完成 (17 个 Issue)：**
+**已完成 (P0: 17 个 + P1: 8 个，共 25 个 Issue)：**
+
+P0:
 | # | 模块 | 说明 |
 |---|------|------|
 | #1 | Prisma Schema | 数据模型定义（Novel/Chapter/EvaluationReport） |
@@ -59,7 +61,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | #16 | 报告架构重排 | 亮点→建议(严重度分级)→雷达图→节奏→注水→一致性 |
 | #17 | 节奏曲线三线重设计 | 动作/对话/描写分段折线+趋势虚线+图例交互+25个测试 |
 
-**测试：** 289 个测试通过（后端 Jest 158 + 前端 Vitest 131）
+P1 (规则引擎 v2):
+| # | 模块 | 说明 |
+|---|------|------|
+| p1-001 | 安全修复 | API key 轮换 + git 历史清理 + env Zod 校验 + pre-commit hook |
+| p1-002 | CORS 中间件 + CI | 统一CORS配置，GitHub Actions CI搭建，类型/lint清零 |
+| p1-003 | 规则引擎 v2 特征提取器 | 5个引擎转型特征提取器，移除评分公式，输出结构化特征 |
+| p1-004 | Prompt v2 锚点评分 | 6锚点(0/2/4/6/8/10)+软化分布+特征注入+截断检测 |
+| p1-005 | 校准 CLI | 5样本×3轮校准，方差<0.5验证，P1 Gate通过 |
+| p1-006 | 双模型编排 + 降级路径 | DeepSeek+豆包并行，三态结果(complete/partial/degraded) |
+| p1-007 | Guard 扩展 — 分歧检测 | detectDivergence(>2阈值)+console.warn日志，模块分离 |
+| p1-008 | Degrade-Report 独立服务 | 5引擎Feature→中文定性报告，severity 3档措辞，顶部总结句，12个测试 |
+
+**测试：** 254 个测试通过（后端 Jest 254）
 
 **模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
 

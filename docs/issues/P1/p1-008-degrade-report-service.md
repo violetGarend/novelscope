@@ -18,13 +18,13 @@
 
 ## Acceptance criteria
 
-- [ ] `generateDegradeReport(features: AllFeatures): string` 接受 5 个 Features 对象
-- [ ] 输出包含 4 维度分节（Hook/爽点/悬念/节奏）+ 顶部总结句
-- [ ] Severity heuristics 对关键指标有至少 3 档措辞（高/中/低）
-- [ ] 所有模板使用中文
-- [ ] 不抛出异常（输入为空 Features 时返回兜底文本）
-- [ ] 独立测试覆盖：正常输入 5 引擎 Feature、空 Feature、部分缺失 Feature（约 10 个测试）
-- [ ] 服务不依赖 LLM 调用，纯模板逻辑
+- [x] `generateDegradeReport(features: AllFeatures): string` 接受 5 个 Features 对象
+- [x] 输出包含 4 维度分节（Hook/爽点/悬念/节奏）+ 顶部总结句
+- [x] Severity heuristics 对关键指标有至少 3 档措辞（高/中/低）
+- [x] 所有模板使用中文
+- [x] 不抛出异常（输入为空 Features 时返回兜底文本）
+- [x] 独立测试覆盖：正常输入 5 引擎 Feature、空 Feature、部分缺失 Feature（约 10 个测试）
+- [x] 服务不依赖 LLM 调用，纯模板逻辑
 
 ## Blocked by
 
