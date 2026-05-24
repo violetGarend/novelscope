@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "agent",
-            "prompt": "检测到 git commit 完成。请执行以下步骤同步所有相关 md 文件：\n\n1) 读取 git log（最近 3 条 commit）确定完成的 issue 编号（如 p1-007、p1-008 等）\n\n2) 读取 docs/issues/README.md，找到对应 issue 的行，将状态列的 `⏳ 待开始` 或 `🔄 进行中` 改为 `✅ 完成`\n\n3) 读取对应 docs/issues/XXX-*.md 文件（如 P1/p1-007-guard-divergence.md），将 Acceptance criteria 中的 `- [ ]` 全部改为 `- [x]`\n\n4) 读取 CLAUDE.md，检查\"已完成\"部分是否需要新增该 issue 记录；如果 CLAUDE.md 中有测试数量统计，根据本次改动更新测试数量\n\n注意：所有文件路径均相对于项目根目录 D:\\AI\\AI代码\\AI写小说。可以修改 docs/issues/README.md、docs/issues/ 下的 issue 文件和 CLAUDE.md。",
+            "prompt": "检测到 git commit 完成。请执行以下步骤同步文档和 CI 配置：\n\n## 文档同步\n\n1) 读取 git log（最近 3 条 commit）确定完成的 issue 编号（如 p1-007、p1-008 等）\n\n2) 读取 docs/issues/README.md，找到对应 issue 的行，将状态列的 `⏳ 待开始` 或 `🔄 进行中` 改为 `✅ 完成`\n\n3) 读取对应 docs/issues/XXX-*.md 文件，将 Acceptance criteria 中的 `- [ ]` 全部改为 `- [x]`\n\n4) 读取 CLAUDE.md，检查\"已完成\"部分是否需要新增该 issue 记录并更新测试数量\n\n## CI 测试同步\n\n5) 读取 .github/workflows/ci.yml，检查后端 job 是否包含 `npx prisma generate` 步骤（在 `npm ci` 之后、`npm test` 之前）。如果没有，添加该步骤\n\n6) 运行 `cd backend && npx jest --config jest.config.ts --no-coverage 2>&1 | tail -3` 获取实际测试数量（格式：Tests: NNN passed）\n\n7) 读取 README.md，找到\"开发进度\"部分，将测试数量更新为步骤 6 获取的实际值\n\n8) 读取 README.md，找到\"开发进度\"部分的 P1 状态表，根据 docs/issues/README.md 中已完成的 issue，更新各阶段的完成数量\n\n注意：所有文件路径均相对于项目根目录 D:\\AI\\AI代码\\AI写小说。",
             "if": "Bash(git commit *)"
           }
         ]
