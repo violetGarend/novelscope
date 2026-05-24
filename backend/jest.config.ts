@@ -11,7 +11,7 @@ const config: Config = {
   },
   transform: {
     "^.+\\.tsx?$": "ts-jest",
-    "^.+\\.js$": "ts-jest",
+    "^.+\\.js$": "@swc/jest",
   },
   transformIgnorePatterns: ["/node_modules/(?!jose)"],
 };

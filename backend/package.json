@@ -29,6 +29,8 @@
     "@jest/globals": "^30.4.1",
     "@libsql/client": "^0.17.3",
     "@prisma/adapter-libsql": "^7.8.0",
+    "@swc/core": "^1.15.40",
+    "@swc/jest": "^0.2.39",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
@@ -38,7 +40,7 @@
     "eslint-config-next": "16.2.6",
     "jest": "^30.4.2",
     "tailwindcss": "^4",
-    "ts-jest": "^29.4.9",
+    "ts-jest": "^29.4.11",
     "typescript": "^5"
   }
 }
