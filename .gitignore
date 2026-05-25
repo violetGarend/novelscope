@@ -41,3 +41,9 @@ backend/prisma/migrations/
 # Misc
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code
+.claude/scheduled_tasks.lock
+
+# Calibration
+backend/calibration-results/
