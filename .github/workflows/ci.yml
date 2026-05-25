@@ -26,16 +26,6 @@ jobs:
       - name: typecheck
         run: npm run typecheck
         working-directory: backend
-      - name: debug env
-        run: |
-          echo "=== Node version ===" && node --version
-          echo "=== npm version ===" && npm --version
-          echo "=== PWD ===" && pwd
-          echo "=== ls node_modules/.bin ===" && ls node_modules/.bin/ | head -20 || echo "no backend .bin"
-          echo "=== ls ../node_modules/.bin ===" && ls ../node_modules/.bin/ | head -20 || echo "no root .bin"
-          echo "=== jest location ===" && which jest || npx which jest || echo "jest not found"
-          echo "=== jose exists ===" && ls node_modules/jose/dist/webapi/index.js 2>/dev/null || ls ../node_modules/jose/dist/webapi/index.js 2>/dev/null || echo "jose not found"
-        working-directory: backend
       - name: test
         run: npm test
         working-directory: backend
@@ -55,15 +45,6 @@ jobs:
         working-directory: frontend
       - name: typecheck
         run: npm run typecheck
-        working-directory: frontend
-      - name: debug env
-        run: |
-          echo "=== Node version ===" && node --version
-          echo "=== npm version ===" && npm --version
-          echo "=== PWD ===" && pwd
-          echo "=== ls node_modules/.bin ===" && ls node_modules/.bin/ | head -20 || echo "no frontend .bin"
-          echo "=== ls ../node_modules/.bin ===" && ls ../node_modules/.bin/ | head -20 || echo "no root .bin"
-          echo "=== vitest location ===" && which vitest || ls node_modules/.bin/vitest 2>/dev/null || ls ../node_modules/.bin/vitest 2>/dev/null || echo "vitest not found"
         working-directory: frontend
       - name: test
         run: npm test
