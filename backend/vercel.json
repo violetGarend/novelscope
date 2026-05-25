@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/evaluate/stream/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/evaluate/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
