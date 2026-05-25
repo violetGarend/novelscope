@@ -4,9 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { saveEvaluation, loadHistory, clearHistory, type HistoryEntry } from "./historyStore";
 import { EvaluationHistory } from "./EvaluationHistory";
 
+// Noon UTC on 2023-11-15 — works in all timezones
 const SAMPLE_ENTRY: HistoryEntry = {
   id: "entry_1",
-  timestamp: 1700000000000,
+  timestamp: 1700049600000,
   reportId: "report_test_001",
   textSummary: "他一拳打出，直接碾压对手。众人目瞪口呆，不敢相信眼前的一幕。",
 };
