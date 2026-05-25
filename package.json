@@ -12,6 +12,9 @@
     "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
     "lint": "npm run lint --workspace=frontend && npm run lint --workspace=backend"
   },
+  "dependencies": {
+    "next": "^16"
+  },
   "devDependencies": {
     "concurrently": "^9.0.0",
     "lefthook": "^2.1.8"
