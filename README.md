@@ -2,7 +2,7 @@
 
 AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——告诉作者**哪里有问题、为什么、怎么改**，而非 AI 自动生成工具。
 
-<a href="https://你的域名.com" target="_blank">
+<a href="https://www.novelscope.top/" target="_blank">
   <img src="https://img.shields.io/badge/Demo-在线体验-brightgreen" alt="Live Demo">
 </a>
 
