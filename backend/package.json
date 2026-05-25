@@ -43,5 +43,8 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.11",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "^4"
   }
 }
