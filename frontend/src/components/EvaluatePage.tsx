@@ -5,6 +5,7 @@ import { ProgressBar } from "./ProgressBar";
 import { ReportCard, ErrorReport, type ReportData } from "./ReportCard";
 import { EvaluationHistory } from "./EvaluationHistory";
 import { saveEvaluation } from "./historyStore";
+import { getApiBaseUrl } from "@/lib/api";
 
 type Phase = "idle" | "evaluating" | "done" | "error";
 
@@ -33,7 +34,7 @@ export function EvaluatePage() {
     abortRef.current = controller;
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+      const apiUrl = getApiBaseUrl();
       const response = await fetch(`${apiUrl}/api/evaluate/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
