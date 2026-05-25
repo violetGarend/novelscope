@@ -2,6 +2,8 @@
 
 AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——告诉作者**哪里有问题、为什么、怎么改**，而非 AI 自动生成工具。
 
+[![Live Demo](https://img.shields.io/badge/Demo-在线体验-brightgreen)](https://www.novelscope.top/)
+
 ![CI](https://github.com/violetGarend/novelscope/actions/workflows/ci.yml/badge.svg)
 
 ![NovelScope 流程图](docs/assets/novelscope流程图.png)
@@ -17,18 +19,19 @@ AI 驱动的中文网文写作质量评估平台。定位为"编辑之眼"——
 
 ## 技术栈
 
-| 层级 | 选型 |
-|------|------|
-| 前端 | Next.js + TypeScript + Tailwind CSS |
-| 后端 | Next.js API Routes（单服务架构） |
-| 数据库 | PostgreSQL + Prisma ORM |
-| 向量数据库 | pgvector（P1） |
-| 缓存 | Redis（P2） |
-| LLM | DeepSeek-v4-flash（主）+ 豆包 API（辅，P1） |
-| 嵌入模型 | bge-small-zh（P1.4） |
-| 部署 | Vercel（P2） |
-| 支付 | PayJS — 微信支付 + 支付宝（P1.6） |
-| 测试 | Jest（后端）+ Vitest（前端） |
+
+| 层级       | 选型                                        |
+| ---------- | ------------------------------------------- |
+| 前端       | Next.js + TypeScript + Tailwind CSS         |
+| 后端       | Next.js API Routes（单服务架构）            |
+| 数据库     | PostgreSQL + Prisma ORM                     |
+| 向量数据库 | pgvector（P1）                              |
+| 缓存       | Redis（P2）                                 |
+| LLM        | DeepSeek-v4-flash（主）+ 豆包 API（辅，P1） |
+| 嵌入模型   | bge-small-zh（P1.4）                        |
+| 部署       | Vercel（P2）                                |
+| 支付       | PayJS — 微信支付 + 支付宝（P1.6）          |
+| 测试       | Jest（后端）+ Vitest（前端）                |
 
 ## 架构
 
@@ -148,15 +151,16 @@ npm run dev
 
 27 个 Issue（已完成 11 个：p1-001~011），416 个测试通过（后端 Jest 258 + 前端 Vitest 158）。
 
-| 阶段 | 内容 | 状态 |
-|------|------|------|
-| P1.0 | API key 轮换 + CORS 中间件 + CI 搭建 | ✅ 完成（p1-001, p1-002） |
-| P1.1 | 规则引擎 v2 重构（特征提取器 + Prompt v2 锚点 + 双模型编排 + Guard + Degrade-Report + Filler 性能优化 + 前端适配） | ✅ 完成（p1-003~010） |
-| P1.2 | 用户注册/登录/GitHub OAuth + 认证 UI | ✅ JWT 完成（p1-011） / ⏳ OAuth+UI 待开始（p1-012~013） |
-| P1.3 | 评估结果入库 + 历史仪表盘 + 报告分享 | ⏳ 待开始（p1-014~017） |
-| P1.4 | pgvector 向量记忆（角色/设定提取 + 跨章节一致性） | ⏳ 待开始（p1-018~021） |
-| P1.5 | 文风分析 + AI 痕迹检测 + 题材热度 | ⏳ 待开始（p1-022~024） |
-| P1.6 | 微信/支付宝支付 + 三级会员（免费/标准/专业） | ⏳ 待开始（p1-025~026） |
+
+| 阶段 | 内容                                                                                                               | 状态                                                     |
+| ---- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| P1.0 | API key 轮换 + CORS 中间件 + CI 搭建                                                                               | ✅ 完成（p1-001, p1-002）                                |
+| P1.1 | 规则引擎 v2 重构（特征提取器 + Prompt v2 锚点 + 双模型编排 + Guard + Degrade-Report + Filler 性能优化 + 前端适配） | ✅ 完成（p1-003~010）                                    |
+| P1.2 | 用户注册/登录/GitHub OAuth + 认证 UI                                                                               | ✅ JWT 完成（p1-011） / ⏳ OAuth+UI 待开始（p1-012~013） |
+| P1.3 | 评估结果入库 + 历史仪表盘 + 报告分享                                                                               | ⏳ 待开始（p1-014~017）                                  |
+| P1.4 | pgvector 向量记忆（角色/设定提取 + 跨章节一致性）                                                                  | ⏳ 待开始（p1-018~021）                                  |
+| P1.5 | 文风分析 + AI 痕迹检测 + 题材热度                                                                                  | ⏳ 待开始（p1-022~024）                                  |
+| P1.6 | 微信/支付宝支付 + 三级会员（免费/标准/专业）                                                                       | ⏳ 待开始（p1-025~026）                                  |
 
 详见 [Issue 追踪表](docs/issues/README.md) 和 [P1.1 PRD](docs/prd/PRD-P1-规则引擎v2重构.md)。
 
@@ -164,26 +168,28 @@ npm run dev
 
 P1.1 四维评分（规则引擎 v2 特征提取器 + Prompt v2 6 锚点评分 + 双模型交叉验证）：
 
-| 维度 | 数据来源 |
-|------|----------|
-| Hook | 规则引擎（开头类型 + 冲突/悬念密度 + 金句）+ DeepSeek + 豆包 |
-| Climax | 规则引擎（5 类关键词分类命中 + 对话/冲突密度）+ DeepSeek + 豆包 |
-| Cliffhanger | 规则引擎（结尾类型 + 反转暗示 + 悬念密度）+ DeepSeek + 豆包 |
-| Pacing | 规则引擎（段落分类 + 张力曲线 + CV/比例）+ DeepSeek + 豆包 |
+
+| 维度        | 数据来源                                                        |
+| ----------- | --------------------------------------------------------------- |
+| Hook        | 规则引擎（开头类型 + 冲突/悬念密度 + 金句）+ DeepSeek + 豆包    |
+| Climax      | 规则引擎（5 类关键词分类命中 + 对话/冲突密度）+ DeepSeek + 豆包 |
+| Cliffhanger | 规则引擎（结尾类型 + 反转暗示 + 悬念密度）+ DeepSeek + 豆包     |
+| Pacing      | 规则引擎（段落分类 + 张力曲线 + CV/比例）+ DeepSeek + 豆包      |
 
 双模型分歧 > 2 分时标记为"需人工判断"，双模型同时不可用时降级为 degrade-report 模板 NLG 定性报告。详见 [PRD](docs/prd/PRD-P1-规则引擎v2重构.md)。
 
 ## 文档
 
-| 文档 | 说明 |
-|------|------|
-| [CLAUDE.md](CLAUDE.md) | 项目开发指南（技术栈、模块、开发模式、Skill 路由） |
-| [DESIGN.md](docs/design/DESIGN.md) | 设计系统（字体、颜色、间距、组件规范） |
-| [AI小说创作平台-产品立项定义文档.md](docs/product/AI小说创作平台-产品立项定义文档.md) | 产品立项定义 |
-| [AI小说创作市场调研报告-三方验证版.md](docs/reports/AI小说创作市场调研报告-三方验证版.md) | 市场调研报告 |
-| [PRD-P0-追读力评估原型.md](docs/prd/PRD-P0-追读力评估原型.md) | P0 技术 PRD |
-| [PRD-P1-规则引擎v2重构.md](docs/prd/PRD-P1-规则引擎v2重构.md) | P1 规则引擎 v2 重构 PRD（特征提取器 + 锚点评分 + 双模型） |
-| [docs/issues/README.md](docs/issues/README.md) | Issue 追踪表（P0 完成 + P1 规划） |
+
+| 文档                                                                                      | 说明                                                      |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [CLAUDE.md](CLAUDE.md)                                                                    | 项目开发指南（技术栈、模块、开发模式、Skill 路由）        |
+| [DESIGN.md](docs/design/DESIGN.md)                                                        | 设计系统（字体、颜色、间距、组件规范）                    |
+| [AI小说创作平台-产品立项定义文档.md](docs/product/AI小说创作平台-产品立项定义文档.md)     | 产品立项定义                                              |
+| [AI小说创作市场调研报告-三方验证版.md](docs/reports/AI小说创作市场调研报告-三方验证版.md) | 市场调研报告                                              |
+| [PRD-P0-追读力评估原型.md](docs/prd/PRD-P0-追读力评估原型.md)                             | P0 技术 PRD                                               |
+| [PRD-P1-规则引擎v2重构.md](docs/prd/PRD-P1-规则引擎v2重构.md)                             | P1 规则引擎 v2 重构 PRD（特征提取器 + 锚点评分 + 双模型） |
+| [docs/issues/README.md](docs/issues/README.md)                                            | Issue 追踪表（P0 完成 + P1 规划）                         |
 
 ## License
 
