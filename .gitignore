@@ -47,3 +47,6 @@ next-env.d.ts
 
 # Calibration
 backend/calibration-results/
+
+# Project flow doc (auto-generated, not tracked)
+FLOW.md

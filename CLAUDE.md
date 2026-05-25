@@ -74,12 +74,13 @@ P1 (规则引擎 v2):
 | p1-008 | Degrade-Report 独立服务 | 5引擎Feature→中文定性报告，severity 3档措辞，顶部总结句，12个测试 |
 | p1-009 | Filler O(n²) 性能优化 | 段落>200截断至前200段，O(n²)→O(200²)，truncated标记 |
 | p1-010 | 前端适配双模型雷达图+降级UI | EvaluationResultV2三态渲染，双多边形叠加，分歧⚠+tooltip，色盲双重编码 |
+| p1-011 | JWT 认证服务 | 用户模型扩展 + accessToken(15min) + refreshToken(7d httpOnly) + bcrypt + jose |
 
 **测试：** 416 个测试通过（后端 Jest 258 + 前端 Vitest 158）
 
 **模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
 
-**P1 规划：** [PRD-P1-规则引擎v2重构](docs/prd/PRD-P1-规则引擎v2重构.md) — 规则引擎转型特征提取器 + Prompt v2 锚点评分 + 双模型编排。8 个 Issue（p1-003~010）全部完成，P1.1 阶段交付。
+**P1 规划：** [PRD-P1-规则引擎v2重构](docs/prd/PRD-P1-规则引擎v2重构.md) — 规则引擎转型特征提取器 + Prompt v2 锚点评分 + 双模型编排。12 个 Issue 完成（p1-001~011），P1.0~P1.1 交付完成，P1.2 推进中。
 
 参考 `docs/prd/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 
