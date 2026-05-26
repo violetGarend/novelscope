@@ -49,15 +49,36 @@ async function evaluateWithTruncationLoop(
   signals: SignalData,
   evaluateModelA: (text: string, prompt: string) => Promise<LLMCallResult>,
   evaluateModelB: (text: string, prompt: string) => Promise<LLMCallResult>,
-  maxRounds: number = 1
+  maxRounds: number = 1,
+  onProgress?: (event: ProgressEvent) => void
 ): Promise<{ resultA: LLMCallResult | null; resultB: LLMCallResult | null }> {
   let promptResult = buildEvaluationPrompt(signals);
 
   for (let round = 0; round <= maxRounds; round++) {
-    const [resultA, resultB] = await Promise.allSettled([
-      evaluateModelA(text, promptResult.prompt),
-      evaluateModelB(text, promptResult.prompt),
-    ]);
+    const promiseA = evaluateModelA(text, promptResult.prompt);
+    const promiseB = evaluateModelB(text, promptResult.prompt);
+
+    // Send intermediate progress while waiting for LLMs
+    let modelADone = false;
+    let modelBDone = false;
+
+    const progressInterval = setInterval(() => {
+      if (modelADone && modelBDone) return;
+      if (modelADone) {
+        onProgress?.({ step: 5, stepName: "DeepSeek 已完成，等待豆包…" });
+      } else if (modelBDone) {
+        onProgress?.({ step: 5, stepName: "豆包已完成，等待 DeepSeek…" });
+      } else {
+        onProgress?.({ step: 5, stepName: "AI 分析中，请稍候…" });
+      }
+    }, 6000);
+
+    const trackA = promiseA.then((v) => { modelADone = true; return v; });
+    const trackB = promiseB.then((v) => { modelBDone = true; return v; });
+
+    const [resultA, resultB] = await Promise.allSettled([trackA, trackB]);
+
+    clearInterval(progressInterval);
 
     const aOk = resultA.status === "fulfilled" ? resultA.value : null;
     const bOk = resultB.status === "fulfilled" ? resultB.value : null;
@@ -141,7 +162,9 @@ export function createDualModelPipeline(
         text,
         signals,
         deps.evaluateModelA,
-        deps.evaluateModelB
+        deps.evaluateModelB,
+        undefined,
+        callOptions?.onProgress
       );
 
       // Step 6: Process results

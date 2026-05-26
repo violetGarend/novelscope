@@ -27,6 +27,7 @@ export const POST_STEPS: StepDef[] = [
 
 interface ProgressBarProps {
   currentStep: number;
+  currentStepName?: string;
 }
 
 function StepIcon({ state, step }: { state: "completed" | "active" | "pending"; step: number }) {
@@ -83,7 +84,7 @@ function StepIcon({ state, step }: { state: "completed" | "active" | "pending"; 
   );
 }
 
-export function ProgressBar({ currentStep }: ProgressBarProps) {
+export function ProgressBar({ currentStep, currentStepName }: ProgressBarProps) {
   const progressPct = Math.min(100, Math.round((currentStep / 7) * 100));
 
   /** Unified step list: pre-steps → real steps → post-steps (conditional) */
@@ -156,9 +157,9 @@ export function ProgressBar({ currentStep }: ProgressBarProps) {
               } ${isPostStep ? "step-row-enter" : ""}`}
             >
               <StepIcon state={state} step={s.step} />
-              {state === "active" && s.stepName.endsWith("…") ? (
+              {state === "active" && (currentStepName || s.stepName.endsWith("…")) ? (
                 <span className="text-primary font-medium text-sm step-name-processing">
-                  {s.stepName.replace(/…+$/, "")}
+                  {(currentStepName || s.stepName).replace(/…+$/, "")}
                 </span>
               ) : (
                 <span

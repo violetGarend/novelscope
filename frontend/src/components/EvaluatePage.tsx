@@ -12,6 +12,7 @@ export function EvaluatePage() {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [currentStep, setCurrentStep] = useState(0);
+  const [currentStepName, setCurrentStepName] = useState("");
   const [result, setResult] = useState<ReportData | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -26,6 +27,7 @@ export function EvaluatePage() {
 
     setPhase("evaluating");
     setCurrentStep(0);
+    setCurrentStepName("");
     setResult(null);
     setErrorMessage("");
 
@@ -73,6 +75,7 @@ export function EvaluatePage() {
             const event = JSON.parse(trimmed.slice(6));
             if (event.type === "progress") {
               setCurrentStep(event.step);
+              if (event.stepName) setCurrentStepName(event.stepName);
             } else if (event.type === "result") {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { type, ...reportData } = event;
@@ -120,7 +123,7 @@ export function EvaluatePage() {
             ))}
           </div>
         ) : (
-          <ProgressBar currentStep={currentStep} />
+          <ProgressBar currentStep={currentStep} currentStepName={currentStepName} />
         )}
       </div>
     );
