@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { loadHistory, type HistoryEntry } from "./historyStore";
+import { useHistoryStore, selectEntries } from "@/stores/history-store";
+import type { HistoryEntry } from "./historyStore";
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
@@ -19,12 +19,7 @@ export function EvaluationHistory({
 }: {
   onSelect?: (entry: HistoryEntry) => void;
 }) {
-  const [entries, setEntries] = useState<HistoryEntry[]>([]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 客户端挂载后从 localStorage 加载历史记录，仅执行一次
-    setEntries(loadHistory());
-  }, []);
+  const entries = useHistoryStore(selectEntries);
 
   if (entries.length === 0) {
     return (

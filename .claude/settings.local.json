@@ -19,7 +19,8 @@
       "Bash(rm -rf .next)",
       "Bash(npx kill-port *)",
       "Bash(npx eslint *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm run *)"
     ]
   },
   "hooks": {

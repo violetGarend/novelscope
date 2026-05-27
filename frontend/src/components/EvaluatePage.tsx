@@ -1,113 +1,36 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useCallback } from "react";
 import { ProgressBar } from "./ProgressBar";
-import { ReportCard, ErrorReport, type ReportData } from "./ReportCard";
+import { ReportCard, ErrorReport } from "./ReportCard";
 import { EvaluationHistory } from "./EvaluationHistory";
-import { saveEvaluation } from "./historyStore";
-
-type Phase = "idle" | "evaluating" | "done" | "error";
+import {
+  useEvaluationStore,
+  selectText,
+  selectPhase,
+  selectCurrentStep,
+  selectCurrentStepName,
+  selectResult,
+  selectErrorMessage,
+  selectSetText,
+  selectResetToIdle,
+  selectSubmitEvaluation,
+} from "@/stores/evaluation-store";
 
 export function EvaluatePage() {
-  const [text, setText] = useState("");
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [currentStep, setCurrentStep] = useState(0);
-  const [currentStepName, setCurrentStepName] = useState("");
-  const [result, setResult] = useState<ReportData | null>(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const abortRef = useRef<AbortController | null>(null);
+  const text = useEvaluationStore(selectText);
+  const phase = useEvaluationStore(selectPhase);
+  const currentStep = useEvaluationStore(selectCurrentStep);
+  const currentStepName = useEvaluationStore(selectCurrentStepName);
+  const result = useEvaluationStore(selectResult);
+  const errorMessage = useEvaluationStore(selectErrorMessage);
+  const setText = useEvaluationStore(selectSetText);
+  const handleRetry = useEvaluationStore(selectResetToIdle);
+  const submitEvaluation = useEvaluationStore(selectSubmitEvaluation);
 
-  const handleRetry = useCallback(() => {
-    setPhase("idle");
-    setErrorMessage("");
-  }, []);
-
-  const handleSubmit = useCallback(async () => {
-    if (text.length < 1000) return;
-
-    setPhase("evaluating");
-    setCurrentStep(0);
-    setCurrentStepName("");
-    setResult(null);
-    setErrorMessage("");
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-      const response = await fetch(`${apiUrl}/api/evaluate/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chapterText: text }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        setErrorMessage(err.error?.message ?? "评估失败");
-        setPhase("error");
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        setErrorMessage("无法读取响应流");
-        setPhase("error");
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data: ")) continue;
-          try {
-            const event = JSON.parse(trimmed.slice(6));
-            if (event.type === "progress") {
-              setCurrentStep(event.step);
-              if (event.stepName) setCurrentStepName(event.stepName);
-            } else if (event.type === "result") {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { type, ...reportData } = event;
-              const report = reportData as ReportData;
-              setResult(report);
-              setCurrentStep(8);
-              setPhase("done");
-
-              // Build report ID for history
-              const reportId = "status" in report
-                ? `report_${Date.now()}`
-                : (report as { reportId: string }).reportId ?? `report_${Date.now()}`;
-
-              saveEvaluation({
-                id: `eval_${Date.now()}`,
-                timestamp: Date.now(),
-                reportId,
-                textSummary: text.slice(0, 100),
-                fullReport: report,
-              });
-            }
-          } catch {
-            // skip malformed lines
-          }
-        }
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      setErrorMessage(err instanceof Error ? err.message : "评估失败");
-      setPhase("error");
-    }
-  }, [text]);
+  const handleSubmit = useCallback(() => {
+    submitEvaluation();
+  }, [submitEvaluation]);
 
   if (phase === "evaluating") {
     return (
@@ -135,14 +58,12 @@ export function EvaluatePage() {
         <ReportCard
           report={result}
           onRetry={() => {
-            setPhase("idle");
-            setCurrentStep(0);
-            setResult(null);
+            handleRetry();
           }}
         />
         <div className="text-center pb-12">
           <button
-            onClick={() => { setPhase("idle"); setCurrentStep(0); setResult(null); }}
+            onClick={() => { handleRetry(); }}
             className="px-6 py-2 text-sm text-primary hover:text-primary-light transition-colors"
           >
             ← 重新评估
@@ -182,8 +103,7 @@ export function EvaluatePage() {
         <EvaluationHistory
           onSelect={(entry) => {
             if (entry.fullReport) {
-              setResult(entry.fullReport);
-              setPhase("done");
+              useEvaluationStore.setState({ result: entry.fullReport, phase: "done" });
             }
           }}
         />
