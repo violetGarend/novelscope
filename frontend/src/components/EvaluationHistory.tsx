@@ -23,7 +23,10 @@ export function EvaluationHistory({
 
   if (entries.length === 0) {
     return (
-      <p className="text-sm text-text-muted text-center py-8">暂无评估历史</p>
+      <div className="text-center py-8 px-4 border border-dashed border-border-light rounded-lg">
+        <p className="text-sm text-text-muted">暂无评估历史</p>
+        <p className="text-xs text-text-muted/60 mt-1">完成评估后，报告将自动保存在此处</p>
+      </div>
     );
   }
 
@@ -33,14 +36,19 @@ export function EvaluationHistory({
         <button
           key={entry.id}
           onClick={() => onSelect?.(entry)}
-          className="w-full text-left px-4 py-3 bg-surface border border-border rounded-md hover:bg-surface-hover transition-colors duration-200"
+          className="w-full text-left px-4 py-3 bg-surface border border-border rounded-md hover:bg-surface-hover hover:border-border-light transition-all duration-200 group"
         >
-          <p className="text-sm text-text truncate">
-            {truncate(entry.textSummary, 50)}
-          </p>
-          <p className="text-xs text-text-muted mt-1">
-            {formatTime(entry.timestamp)}
-          </p>
+          <div className="flex items-start gap-3">
+            <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/20 shrink-0 group-hover:bg-primary transition-colors duration-200" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-text truncate">
+                {truncate(entry.textSummary, 50)}
+              </p>
+              <p className="text-xs text-text-muted font-mono mt-1 tabular-nums">
+                {formatTime(entry.timestamp)}
+              </p>
+            </div>
+          </div>
         </button>
       ))}
     </div>
