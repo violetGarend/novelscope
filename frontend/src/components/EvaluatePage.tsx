@@ -765,39 +765,49 @@ export function EvaluatePage() {
   const handleRetry = useEvaluationStore(selectResetToIdle);
   const submitEvaluation = useEvaluationStore(selectSubmitEvaluation);
   const entries = useHistoryStore(selectEntries);
-  const [pacedStep, setPacedStep] = useState(-3);
-  const paceRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Timer-based step pacing: runs independently of backend events
+  const [pacedStep, setPacedStep] = useState(0);
+  const paceRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const phaseRef = useRef(phase);
+  const currentStepRef = useRef(currentStep);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => { currentStepRef.current = currentStep; }, [currentStep]);
+
+  // Single unified animation: 1→5 pause, then 6→7 when AI returns
   useEffect(() => {
     if (phase !== "evaluating") {
-      setPacedStep(-3);
       if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
       return;
     }
 
-    // Start timer: tick from -2 → -1 → 0 → 1 → 2 → 3 → 4 at 1/sec
-    setPacedStep(-2);
-    paceRef.current = setInterval(() => {
+    let phase2 = false;
+    const initTimer = setTimeout(() => setPacedStep(1), 0);
+
+    const intervalId = setInterval(() => {
+      if (phaseRef.current !== "evaluating") return;
+
       setPacedStep((prev) => {
-        const next = prev + 1;
-        return next >= 4 ? 4 : next; // cap at 4
+        if (!phase2) {
+          if (prev >= 5) {
+            if (currentStepRef.current >= 6) { phase2 = true; return 6; }
+            return 5;
+          }
+          return prev + 1;
+        }
+        if (prev >= 7) { clearInterval(intervalId); paceRef.current = null; return 7; }
+        return prev + 1;
       });
     }, 1000);
 
+    paceRef.current = intervalId;
+
     return () => {
-      if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
+      clearInterval(intervalId);
+      clearTimeout(initTimer);
+      paceRef.current = null;
+      setPacedStep(0);
     };
   }, [phase]);
-
-  // Sync: once animation reaches step 4, snap to real backend step
-  useEffect(() => {
-    if (phase !== "evaluating") return;
-    if (pacedStep >= 4 && currentStep > pacedStep) {
-      setPacedStep(currentStep);
-      if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
-    }
-  }, [phase, currentStep, pacedStep]);
 
   const handleSubmit = useCallback(() => {
     submitEvaluation();
@@ -805,23 +815,12 @@ export function EvaluatePage() {
 
   if (phase === "evaluating") {
     return (
-      <><div className="max-w-5xl mx-auto p-8 phase-fade-in">
-        {currentStep === 0 ? (
-          <div data-testid="skeleton" className="space-y-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 animate-pulse">
-                <div className="h-6 w-6 rounded-full bg-border" />
-                <div className="h-4 w-32 rounded bg-border" />
-              </div>
-            ))}
-          </div>
-        ) : (
+      <><div className="w-full max-w-[500px] mx-auto p-8 phase-fade-in">
           <div className="bg-surface rounded-2xl border border-border p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
             <h2 className="font-display text-xl text-text mb-1">正在评估</h2>
             <p className="text-sm text-text-muted mb-7">AI 正在分析章节内容，请稍候</p>
             <ProgressBar currentStep={pacedStep} currentStepName={currentStepName} />
           </div>
-        )}
       </div><style dangerouslySetInnerHTML={{__html:".phase-fade-in{animation:phaseFadeIn .25s ease-out}@keyframes phaseFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}"}} /></>);
   }
 
@@ -851,7 +850,7 @@ export function EvaluatePage() {
   }
 
   return (
-    <><div className="max-w-5xl mx-auto p-8 phase-fade-in">
+    <><div className="w-full max-w-[1440px] mx-auto p-8 phase-fade-in">
       {/* Title — above the columns so card top borders align */}
       <div className="mb-8">
         <h2 className="font-display text-2xl text-text mb-1">章节评估</h2>

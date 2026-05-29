@@ -29,7 +29,7 @@ describe("ProgressBar", () => {
     const completedItems = screen.getAllByRole("listitem").filter(
       (item) => item.getAttribute("data-state") === "completed"
     );
-    expect(completedItems.length).toBe(6); // pre-steps 2 + real steps 1-4
+    expect(completedItems.length).toBe(4); // steps 1-4
   });
 
   it("should highlight the current step role", () => {
@@ -41,14 +41,13 @@ describe("ProgressBar", () => {
     expect(activeItem?.textContent).toContain("构建 AI 提示");
   });
 
-  it("should show pre-steps as completed when currentStep is 0 (animation already passed them)", () => {
+  it("should show all steps as pending when currentStep is 0", () => {
     render(<ProgressBar currentStep={0} />);
     const items = screen.getAllByRole("listitem");
-    expect(items.length).toBe(9);
+    expect(items.length).toBe(7);
     const completed = items.filter((i) => i.getAttribute("data-state") === "completed");
     const active = items.filter((i) => i.getAttribute("data-state") === "active");
-    // At step 0, both pre-steps (-2, -1) are completed (animation passed them)
-    expect(completed.length).toBe(2);
+    expect(completed.length).toBe(0);
     expect(active.length).toBe(0);
   });
 
@@ -57,7 +56,7 @@ describe("ProgressBar", () => {
     const items = screen.getAllByRole("listitem");
     const completed = items.filter((i) => i.getAttribute("data-state") === "completed");
     const active = items.filter((i) => i.getAttribute("data-state") === "active");
-    expect(completed.length).toBe(8);
+    expect(completed.length).toBe(6);
     expect(active.length).toBe(2);
     expect(active[0]?.textContent).toContain("生成报告");
   });
@@ -102,19 +101,11 @@ describe("ProgressBar", () => {
     expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
-  // ---- pre-steps ----
-  it("should render pre-steps at the beginning of the list", () => {
+  // ---- pre-steps are hidden ----
+  it("should not render pre-steps in the step list", () => {
     render(<ProgressBar currentStep={0} />);
     PRE_STEPS.forEach((s) => {
-      expect(screen.getByText(s.stepName)).toBeInTheDocument();
-    });
-  });
-
-  it("should mark pre-steps as completed when evaluation starts", () => {
-    render(<ProgressBar currentStep={1} />);
-    PRE_STEPS.forEach((s) => {
-      const el = screen.getByText(s.stepName).closest("li");
-      expect(el?.getAttribute("data-state")).toBe("completed");
+      expect(screen.queryByText(s.stepName)).toBeNull();
     });
   });
 
@@ -142,14 +133,14 @@ describe("ProgressBar", () => {
   });
 
   // ---- counts ----
-  it("should show 11 steps when evaluation completes", () => {
+  it("should show 9 steps when evaluation completes", () => {
     render(<ProgressBar currentStep={8} />);
-    expect(screen.getAllByRole("listitem").length).toBe(11);
+    expect(screen.getAllByRole("listitem").length).toBe(9);
   });
 
-  it("should show 9 steps during mid-evaluation", () => {
+  it("should show 7 steps during mid-evaluation", () => {
     render(<ProgressBar currentStep={3} />);
-    expect(screen.getAllByRole("listitem").length).toBe(9);
+    expect(screen.getAllByRole("listitem").length).toBe(7);
   });
 
   // ---- wave animation ----

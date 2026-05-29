@@ -163,13 +163,12 @@ describe("EvaluatePage", () => {
     });
   });
 
-  it("should show skeleton placeholder while waiting for first progress event", async () => {
+  it("should show progress bar immediately when evaluation starts", async () => {
     const user = userEvent.setup();
     // Create a stream that delays the first event
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        // Small delay to ensure the skeleton state is observable
         controller.enqueue(encoder.encode("")); // empty chunk
       },
     });
@@ -186,8 +185,8 @@ describe("EvaluatePage", () => {
     fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // Skeleton should be visible while currentStep is 0
-    expect(screen.getByTestId("skeleton")).toBeInTheDocument();
+    // ProgressBar should appear immediately with step text (animation drives display)
+    expect(screen.getByText(/步骤/)).toBeInTheDocument();
   });
 
   it("should show evaluation guide and writing tips in right panel", () => {

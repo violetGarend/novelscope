@@ -67,7 +67,6 @@ export function ProgressBar({ currentStep, currentStepName }: ProgressBarProps) 
   const progressPct = Math.max(0, Math.min(100, Math.round((currentStep / 7) * 100)));
 
   const visibleSteps = [
-    ...PRE_STEPS,
     ...EVALUATION_STEPS,
     ...(currentStep >= 7 ? POST_STEPS : []),
   ];
