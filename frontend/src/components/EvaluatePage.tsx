@@ -772,7 +772,7 @@ export function EvaluatePage() {
 
   if (phase === "evaluating") {
     return (
-      <div className="max-w-xl mx-auto p-8">
+      <><div className="max-w-5xl mx-auto p-8 phase-fade-in">
         {currentStep === 0 ? (
           <div data-testid="skeleton" className="space-y-2">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -789,8 +789,7 @@ export function EvaluatePage() {
             <ProgressBar currentStep={currentStep} currentStepName={currentStepName} />
           </div>
         )}
-      </div>
-    );
+      </div><style dangerouslySetInnerHTML={{__html:".phase-fade-in{animation:phaseFadeIn .25s ease-out}@keyframes phaseFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}"}} /></>);
   }
 
   if (phase === "done" && result) {
@@ -819,7 +818,7 @@ export function EvaluatePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
+    <><div className="max-w-5xl mx-auto p-8 phase-fade-in">
       {/* Title — above the columns so card top borders align */}
       <div className="mb-8">
         <h2 className="font-display text-2xl text-text mb-1">章节评估</h2>
@@ -937,5 +936,8 @@ export function EvaluatePage() {
         />
       </div>
     </div>
-  );
+      <style dangerouslySetInnerHTML={{__html:
+        ".phase-fade-in{animation:phaseFadeIn .25s ease-out}" +
+        "@keyframes phaseFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}"}}
+      /></>);
 }

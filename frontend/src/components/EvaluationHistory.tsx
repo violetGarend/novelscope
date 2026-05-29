@@ -36,7 +36,7 @@ export function EvaluationHistory({
         <button
           key={entry.id}
           onClick={() => onSelect?.(entry)}
-          className="w-full text-left px-4 py-3 bg-surface border border-border rounded-md hover:bg-surface-hover hover:border-border-light transition-all duration-200 group"
+          className="w-full text-left px-4 py-3 bg-surface border border-border rounded-md hover:bg-surface-hover hover:border-border-light transition-all duration-200 group cursor-pointer"
         >
           <div className="flex items-start gap-3">
             <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/20 shrink-0 group-hover:bg-primary transition-colors duration-200" />
