@@ -205,9 +205,12 @@ describe("EvaluatePage", () => {
   it("should show quick sample buttons below input card", () => {
     render(<EvaluatePage />);
     expect(screen.getByText("快速试试：")).toBeInTheDocument();
-    expect(screen.getByText(/示例A/)).toBeInTheDocument();
-    expect(screen.getByText(/示例B/)).toBeInTheDocument();
-    expect(screen.getByText(/示例C/)).toBeInTheDocument();
+    // Only sample buttons, not history entries
+    const buttons = screen.getAllByRole("button");
+    const sampleButtons = buttons.filter((b) =>
+      ["第1章", "第7章", "第9章"].some((ch) => b.textContent?.includes(ch))
+    );
+    expect(sampleButtons).toHaveLength(3);
   });
 
   it("should fill textarea when sample button is clicked", async () => {
@@ -217,10 +220,12 @@ describe("EvaluatePage", () => {
     const textarea = screen.getByPlaceholderText(/输入章节文本/i);
     expect(textarea).toHaveValue("");
 
-    await user.click(screen.getByText(/示例A/));
+    const allButtons = screen.getAllByRole("button");
+    const ch1Button = allButtons.find((b) => b.textContent?.includes("第1章（荒年）"))!;
+    await user.click(ch1Button);
 
     expect(textarea).not.toHaveValue("");
-    expect(screen.getByTestId("char-count")).not.toHaveTextContent("0");
+    expect(Number(screen.getByTestId("char-count").textContent)).toBeGreaterThan(100);
   });
 
   it("should disable submit button when text is too short", async () => {
