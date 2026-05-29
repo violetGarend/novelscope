@@ -880,10 +880,11 @@ export function EvaluatePage() {
         </div>
 
         {/* Right column: auxiliary panel */}
-        <div className="flex-[1] min-w-0">
-          <div className="space-y-6">
+        <div className="flex-[1] min-w-0 flex flex-col gap-5">
+          {/* Top row: 评估指南 + 写作小贴士 side by side */}
+          <div className="flex gap-5">
             {/* 评估指南 */}
-            <div className="bg-surface rounded-lg border border-border p-5">
+            <div className="flex-1 bg-surface rounded-lg border border-border p-5">
               <h3 className="font-display text-sm text-text mb-3">评估指南</h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2 text-xs text-text-secondary">
@@ -901,25 +902,8 @@ export function EvaluatePage() {
               </ul>
             </div>
 
-            {/* 历史评估 */}
-            <div className="bg-surface rounded-lg border border-border p-5">
-              <div className="flex items-baseline gap-2 mb-3">
-                <h3 className="font-display text-sm text-text">历史评估</h3>
-                {entries.length > 0 && (
-                  <span className="text-xs text-text-muted font-mono">最近 {entries.length} 条</span>
-                )}
-              </div>
-              <EvaluationHistory
-                onSelect={(entry) => {
-                  if (entry.fullReport) {
-                    useEvaluationStore.setState({ result: entry.fullReport, phase: "done" });
-                  }
-                }}
-              />
-            </div>
-
             {/* 写作小贴士 */}
-            <div className="bg-surface rounded-lg border border-border p-5">
+            <div className="flex-1 bg-surface rounded-lg border border-border p-5">
               <h3 className="font-display text-sm text-text mb-3">写作小贴士</h3>
               <ul className="space-y-2">
                 <li className="text-xs text-text-secondary leading-relaxed">
@@ -933,6 +917,23 @@ export function EvaluatePage() {
                 </li>
               </ul>
             </div>
+          </div>
+
+          {/* 历史评估 — 底部全宽 */}
+          <div className="bg-surface rounded-lg border border-border p-5">
+            <div className="flex items-baseline gap-2 mb-3">
+              <h3 className="font-display text-sm text-text">历史评估</h3>
+              {entries.length > 0 && (
+                <span className="text-xs text-text-muted font-mono">最近 {entries.length} 条</span>
+              )}
+            </div>
+            <EvaluationHistory
+              onSelect={(entry) => {
+                if (entry.fullReport) {
+                  useEvaluationStore.setState({ result: entry.fullReport, phase: "done" });
+                }
+              }}
+            />
           </div>
         </div>
       </div>
