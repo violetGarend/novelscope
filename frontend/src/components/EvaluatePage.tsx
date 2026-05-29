@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ProgressBar } from "./ProgressBar";
 import { ReportCard, ErrorReport } from "./ReportCard";
 import { EvaluationHistory } from "./EvaluationHistory";
@@ -765,6 +765,21 @@ export function EvaluatePage() {
   const handleRetry = useEvaluationStore(selectResetToIdle);
   const submitEvaluation = useEvaluationStore(selectSubmitEvaluation);
   const entries = useHistoryStore(selectEntries);
+  const [pacedStep, setPacedStep] = useState(0);
+
+  // Smooth step progression: pace fast steps at ~1/sec for visual continuity
+  useEffect(() => {
+    if (phase !== "evaluating") { setPacedStep(0); return; }
+    // Step 5 (调用 AI 分析) — show immediately (real wait for AI)
+    if (currentStep === 5) { setPacedStep(5); return; }
+    // Pre-steps (negative) — show immediately
+    if (currentStep < 0) { setPacedStep(currentStep); return; }
+    // Steps 1-4, 6-7: pace at 1/sec toward the real step
+    if (pacedStep < currentStep) {
+      const t = setTimeout(() => setPacedStep((s) => s + 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [currentStep, phase, pacedStep]);
 
   const handleSubmit = useCallback(() => {
     submitEvaluation();
@@ -786,7 +801,7 @@ export function EvaluatePage() {
           <div className="bg-surface rounded-2xl border border-border p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
             <h2 className="font-display text-xl text-text mb-1">正在评估</h2>
             <p className="text-sm text-text-muted mb-7">AI 正在分析章节内容，请稍候</p>
-            <ProgressBar currentStep={currentStep} currentStepName={currentStepName} />
+            <ProgressBar currentStep={pacedStep} currentStepName={currentStepName} />
           </div>
         )}
       </div><style dangerouslySetInnerHTML={{__html:".phase-fade-in{animation:phaseFadeIn .25s ease-out}@keyframes phaseFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}"}} /></>);
