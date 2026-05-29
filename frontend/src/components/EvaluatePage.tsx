@@ -772,8 +772,7 @@ export function EvaluatePage() {
 
   if (phase === "evaluating") {
     return (
-      <div className="max-w-lg mx-auto p-8">
-        <h2 className="font-display text-2xl text-text mb-6">正在评估...</h2>
+      <div className="max-w-xl mx-auto p-8">
         {currentStep === 0 ? (
           <div data-testid="skeleton" className="space-y-2">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -784,7 +783,11 @@ export function EvaluatePage() {
             ))}
           </div>
         ) : (
-          <ProgressBar currentStep={currentStep} currentStepName={currentStepName} />
+          <div className="bg-surface rounded-2xl border border-border p-10 shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+            <h2 className="font-display text-xl text-text mb-1">正在评估</h2>
+            <p className="text-sm text-text-muted mb-7">AI 正在分析章节内容，请稍候</p>
+            <ProgressBar currentStep={currentStep} currentStepName={currentStepName} />
+          </div>
         )}
       </div>
     );

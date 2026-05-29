@@ -3,20 +3,20 @@ import { render, screen } from "@testing-library/react";
 import { ProgressBar, EVALUATION_STEPS, PRE_STEPS, POST_STEPS } from "./ProgressBar";
 
 describe("ProgressBar", () => {
-  it("should render all 7 steps", () => {
+  it("should render all 7 evaluation steps", () => {
     render(<ProgressBar currentStep={0} />);
     EVALUATION_STEPS.forEach((step) => {
-      expect(screen.getByText(step.stepName)).toBeInTheDocument();
+      const matches = screen.getAllByText(step.stepName);
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
   });
 
   it("should mark steps before currentStep as completed", () => {
     render(<ProgressBar currentStep={3} />);
-    // Steps 1-2 should be completed
     const step1 = screen.getByText("正在验证文本").closest("li");
     const step2 = screen.getByText("分析爽点密度").closest("li");
     const step3 = screen.getByText("分析节奏").closest("li");
-    const step4 = screen.getByText("构建 AI 提示…").closest("li");
+    const step4 = screen.getByText("构建 AI 提示").closest("li");
 
     expect(step1?.getAttribute("data-state")).toBe("completed");
     expect(step2?.getAttribute("data-state")).toBe("completed");
@@ -32,7 +32,7 @@ describe("ProgressBar", () => {
     expect(completedItems.length).toBe(6); // pre-steps 2 + real steps 1-4
   });
 
-  it("should highlight the current step with primary color", () => {
+  it("should highlight the current step role", () => {
     render(<ProgressBar currentStep={4} />);
     const activeItem = screen
       .getAllByRole("listitem")
@@ -44,7 +44,6 @@ describe("ProgressBar", () => {
   it("should show warm-up pre-step as active when currentStep is 0", () => {
     render(<ProgressBar currentStep={0} />);
     const items = screen.getAllByRole("listitem");
-    // Pre-step -1 is active, rest are pending (9 items: 2 pre + 7 real)
     expect(items.length).toBe(9);
     const active = items.filter((i) => i.getAttribute("data-state") === "active");
     const pending = items.filter((i) => i.getAttribute("data-state") === "pending");
@@ -56,7 +55,6 @@ describe("ProgressBar", () => {
   it("should show step 7 as active when currentStep is 7", () => {
     render(<ProgressBar currentStep={7} />);
     const items = screen.getAllByRole("listitem");
-    // Pre 2 + real 1-6 = 8 completed, real 7 + post 8 = 2 active, post 9 = 1 pending
     const completed = items.filter((i) => i.getAttribute("data-state") === "completed");
     const active = items.filter((i) => i.getAttribute("data-state") === "active");
     expect(completed.length).toBe(8);
@@ -73,12 +71,6 @@ describe("ProgressBar", () => {
   });
 
   // ---- progress bar ----
-  it("should render overall progress bar with percentage", () => {
-    render(<ProgressBar currentStep={0} />);
-    expect(screen.getByText("准备中…")).toBeInTheDocument();
-    expect(screen.getByText("0%")).toBeInTheDocument();
-  });
-
   it("should show step count and percentage during evaluation", () => {
     render(<ProgressBar currentStep={4} />);
     expect(screen.getByText("步骤 4 / 7")).toBeInTheDocument();
@@ -93,107 +85,24 @@ describe("ProgressBar", () => {
 
   it("should render the progress bar fill element", () => {
     const { container } = render(<ProgressBar currentStep={3} />);
-    const fill = container.querySelector(".progress-bar-fill");
+    const fill = container.querySelector(".progress-fill-bar");
     expect(fill).toBeInTheDocument();
     expect((fill as HTMLElement).style.width).toBe("43%");
   });
 
-  // ---- transition effects ----
-  it("should have step-icon-completed class on completed icon", () => {
-    const { container } = render(<ProgressBar currentStep={3} />);
-    const icon = container.querySelector(".step-icon-completed");
-    expect(icon).toBeInTheDocument();
-  });
-
-  it("should have shimmer element on active step", () => {
-    const { container } = render(<ProgressBar currentStep={4} />);
-    const shimmer = container.querySelector(".step-shimmer");
-    expect(shimmer).toBeInTheDocument();
-  });
-
-  it("should have step-row-completed class with staggered animation delay on completed rows", () => {
-    const { container } = render(<ProgressBar currentStep={3} />);
-    const rows = container.querySelectorAll(".step-row-completed");
-    expect(rows.length).toBe(2); // steps 1 and 2
-    // First completed row should have delay=0ms, second delay=80ms
-    expect((rows[0] as HTMLElement).style.animationDelay).toBe("0ms");
-    expect((rows[1] as HTMLElement).style.animationDelay).toBe("80ms");
-  });
-
   it("should set progress bar to 0% width at step 0", () => {
     const { container } = render(<ProgressBar currentStep={0} />);
-    const fill = container.querySelector(".progress-bar-fill");
+    const fill = container.querySelector(".progress-fill-bar");
     expect((fill as HTMLElement).style.width).toBe("0%");
   });
 
-  // ---- steps 6-7 transition effects ----
-  it("should show processing dots animation on step 6 active", () => {
-    render(<ProgressBar currentStep={6} />);
-    const span = document.querySelector(".step-name-processing");
-    expect(span).toBeInTheDocument();
-    expect(span?.textContent).toBe("处理 AI 结果");
+  it("should show step 0/7 at initial state", () => {
+    render(<ProgressBar currentStep={0} />);
+    expect(screen.getByText("步骤 0 / 7")).toBeInTheDocument();
+    expect(screen.getByText("0%")).toBeInTheDocument();
   });
 
-  it("should show processing dots animation on step 4 active", () => {
-    render(<ProgressBar currentStep={4} />);
-    const span = document.querySelector(".step-name-processing");
-    expect(span).toBeInTheDocument();
-    expect(span?.textContent).toBe("构建 AI 提示");
-  });
-
-  it("should show processing dots animation on step 5 active", () => {
-    render(<ProgressBar currentStep={5} />);
-    const span = document.querySelector(".step-name-processing");
-    expect(span).toBeInTheDocument();
-    expect(span?.textContent).toBe("调用 AI 分析");
-  });
-
-  it("should not show processing dots on completed steps", () => {
-    render(<ProgressBar currentStep={8} />);
-    expect(document.querySelector(".step-name-processing")).toBeNull();
-  });
-
-  it("should show golden glow icon on step 7 when active", () => {
-    const { container } = render(<ProgressBar currentStep={7} />);
-    expect(container.querySelector(".step-icon-final")).toBeInTheDocument();
-    expect(container.querySelector(".step-shimmer-final")).toBeInTheDocument();
-  });
-
-  it("should not show golden glow on step 6 when active", () => {
-    const { container } = render(<ProgressBar currentStep={6} />);
-    expect(container.querySelector(".step-icon-final")).toBeNull();
-  });
-
-  it("should render step 7 text in amber when active", () => {
-    render(<ProgressBar currentStep={7} />);
-    const el = screen.getByText("生成报告");
-    expect(el.className).toContain("text-amber-500");
-    expect(el.className).toContain("font-semibold");
-  });
-
-  it("should show completion pulse class on progress bar when all done", () => {
-    const { container } = render(<ProgressBar currentStep={8} />);
-    expect(container.querySelector(".progress-bar-complete")).toBeInTheDocument();
-  });
-
-  it("should not show completion pulse class during evaluation", () => {
-    const { container } = render(<ProgressBar currentStep={7} />);
-    expect(container.querySelector(".progress-bar-complete")).toBeNull();
-  });
-
-  it("should show '评估完成' in success color", () => {
-    render(<ProgressBar currentStep={8} />);
-    const el = screen.getByText("评估完成");
-    expect(el.className).toContain("text-success");
-  });
-
-  it("should set green gradient background on fill when complete", () => {
-    const { container } = render(<ProgressBar currentStep={8} />);
-    const fill = container.querySelector(".progress-bar-fill") as HTMLElement;
-    expect(fill.style.background).toContain("rgb(34, 197, 94)");
-  });
-
-  // ---- pre-steps (warm-up) ----
+  // ---- pre-steps ----
   it("should render pre-steps at the beginning of the list", () => {
     render(<ProgressBar currentStep={0} />);
     PRE_STEPS.forEach((s) => {
@@ -209,27 +118,7 @@ describe("ProgressBar", () => {
     });
   });
 
-  it("should render pre-step active icon with pulsing dot (not a number)", () => {
-    const { container } = render(<ProgressBar currentStep={0} />);
-    const dot = container.querySelector(".step-dot-pulse");
-    expect(dot).toBeInTheDocument();
-  });
-
-  it("should render pre-step pending icon with dashed border and small dot", () => {
-    const { container } = render(<ProgressBar currentStep={0} />);
-    // First pre-step (-2) is pending, should have a small static dot
-    const preStepPending = screen.getByText("初始化评估引擎").closest("li");
-    expect(preStepPending?.getAttribute("data-state")).toBe("pending");
-    expect(preStepPending?.querySelector(".step-dot-pulse")).toBeNull();
-  });
-
-  it("should have data-kind='pre' on pre-step list items", () => {
-    render(<ProgressBar currentStep={0} />);
-    const preItem = screen.getByText("初始化评估引擎").closest("li");
-    expect(preItem?.getAttribute("data-kind")).toBe("pre");
-  });
-
-  // ---- post-steps (wrap-up) ----
+  // ---- post-steps ----
   it("should show post-steps when currentStep reaches 7", () => {
     render(<ProgressBar currentStep={7} />);
     POST_STEPS.forEach((s) => {
@@ -252,38 +141,31 @@ describe("ProgressBar", () => {
     });
   });
 
-  it("should have step-row-enter animation class on post-steps", () => {
-    const { container } = render(<ProgressBar currentStep={7} />);
-    const rows = container.querySelectorAll(".step-row-enter");
-    expect(rows.length).toBe(2);
-  });
-
-  it("should have data-kind='post' on post-step list items", () => {
-    render(<ProgressBar currentStep={7} />);
-    const postItem = screen.getByText("整理评估数据").closest("li");
-    expect(postItem?.getAttribute("data-kind")).toBe("post");
-  });
-
-  // ---- combined counts ----
+  // ---- counts ----
   it("should show 11 steps when evaluation completes", () => {
     render(<ProgressBar currentStep={8} />);
     expect(screen.getAllByRole("listitem").length).toBe(11);
   });
 
-  it("should show 9 steps during mid-evaluation (no post-steps yet)", () => {
+  it("should show 9 steps during mid-evaluation", () => {
     render(<ProgressBar currentStep={3} />);
     expect(screen.getAllByRole("listitem").length).toBe(9);
   });
 
-  it("should not give pre-steps the step-row-completed animation", () => {
+  // ---- wave animation ----
+  it("should show wave animation on active step", () => {
     const { container } = render(<ProgressBar currentStep={3} />);
-    const preItem = screen.getByText("初始化评估引擎").closest("li");
-    expect(preItem?.getAttribute("data-state")).toBe("completed");
-    expect(preItem?.classList.contains("step-row-completed")).toBe(false);
+    expect(container.querySelector(".wave-status")).toBeInTheDocument();
   });
 
-  it("should apply completion shine to progress bar when all done", () => {
+  it("should not show wave animation when all steps completed", () => {
     const { container } = render(<ProgressBar currentStep={8} />);
-    expect(container.querySelector(".progress-bar-complete")).toBeInTheDocument();
+    expect(container.querySelector(".wave-status")).toBeNull();
+  });
+
+  it("should render description text for each step", () => {
+    render(<ProgressBar currentStep={3} />);
+    expect(screen.getByText("解析段落张力曲线")).toBeInTheDocument();
+    expect(screen.getByText("检查文本格式")).toBeInTheDocument();
   });
 });

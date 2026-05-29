@@ -208,7 +208,7 @@ describe("EvaluatePage", () => {
     // Only sample buttons, not history entries
     const buttons = screen.getAllByRole("button");
     const sampleButtons = buttons.filter((b) =>
-      ["第1章", "第7章", "第9章"].some((ch) => b.textContent?.includes(ch))
+      b.textContent?.includes("（")
     );
     expect(sampleButtons).toHaveLength(3);
   });
