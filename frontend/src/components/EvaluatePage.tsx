@@ -817,23 +817,24 @@ export function EvaluatePage() {
 
   return (
     <div className="max-w-5xl mx-auto p-8">
-      {/* Two-column layout */}
-      <div className="flex gap-8">
+      {/* Title — above the columns so card top borders align */}
+      <div className="mb-8">
+        <h2 className="font-display text-2xl text-text mb-1">章节评估</h2>
+        <p className="text-sm text-text-muted">粘贴章节文本以获取 AI 驱动的写作质量分析报告</p>
+      </div>
+
+      {/* Two-column layout: input + auxiliary cards */}
+      <div className="flex gap-8 items-stretch">
         {/* Left column: input area */}
         <div className="flex-[2] min-w-0">
-          <div className="mb-8">
-            <h2 className="font-display text-2xl text-text mb-1">章节评估</h2>
-            <p className="text-sm text-text-muted">粘贴章节文本以获取 AI 驱动的写作质量分析报告</p>
-          </div>
-
           {/* Input card */}
-          <div className="bg-surface rounded-lg border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary-lighter focus-within:border-primary-light transition-all duration-200">
+          <div className="bg-surface rounded-lg border border-border overflow-hidden focus-within:ring-2 focus-within:ring-primary-lighter focus-within:border-primary-light transition-all duration-200 h-full">
             <textarea
               placeholder="输入章节文本（至少1000字）..."
               value={text}
               onChange={(e) => setText(e.target.value)}
               rows={10}
-              className="w-full p-5 min-h-[360px] bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-text placeholder:text-text-muted resize-y"
+              className="w-full p-5 min-h-[380px] bg-transparent border-0 focus:outline-none focus:ring-0 text-base leading-relaxed text-text placeholder:text-text-muted resize-y"
             />
 
             {/* Status bar */}
@@ -863,79 +864,74 @@ export function EvaluatePage() {
               </button>
             </div>
           </div>
-
-          {/* Quick sample texts */}
-          <div className="mt-5 flex items-center gap-2">
-            <span className="text-xs text-text-muted shrink-0">快速试试：</span>
-            {SAMPLE_TEXTS.map((sample) => (
-              <button
-                key={sample.label}
-                onClick={() => setText(sample.text)}
-                className="px-3 py-1 bg-primary-bg text-primary border border-primary-lighter rounded-md text-xs hover:bg-primary-lighter/30 transition-colors duration-200"
-              >
-                {sample.label}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* Right column: auxiliary panel */}
+        {/* Right column: 评估指南 + 写作小贴士 — top aligns with input card */}
         <div className="flex-[1] min-w-0 flex flex-col gap-5">
-          {/* Top row: 评估指南 + 写作小贴士 side by side */}
-          <div className="flex gap-5">
-            {/* 评估指南 */}
-            <div className="flex-1 bg-surface rounded-lg border border-border p-5">
-              <h3 className="font-display text-sm text-text mb-3">评估指南</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
-                  至少输入 1,000 字以获得准确分析
-                </li>
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
-                  建议粘贴完整的章节段落，而非片段
-                </li>
-                <li className="flex items-start gap-2 text-xs text-text-secondary">
-                  <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
-                  避免纯对话或超短片段，上下文越丰富分析越准确
-                </li>
-              </ul>
-            </div>
-
-            {/* 写作小贴士 */}
-            <div className="flex-1 bg-surface rounded-lg border border-border p-5">
-              <h3 className="font-display text-sm text-text mb-3">写作小贴士</h3>
-              <ul className="space-y-2">
-                <li className="text-xs text-text-secondary leading-relaxed">
-                  黄金三章：开篇 3000 字决定读者去留，Hook 设计至关重要
-                </li>
-                <li className="text-xs text-text-secondary leading-relaxed">
-                  爽点节奏：每 500-800 字设置一个小爽点，保持读者追读欲望
-                </li>
-                <li className="text-xs text-text-secondary leading-relaxed">
-                  对话与描写的黄金比例建议保持在 3:7 左右
-                </li>
-              </ul>
-            </div>
+          <div className="bg-surface rounded-lg border border-border p-5">
+            <h3 className="font-display text-sm text-text mb-3">评估指南</h3>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2 text-xs text-text-secondary">
+                <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
+                至少输入 1,000 字以获得准确分析
+              </li>
+              <li className="flex items-start gap-2 text-xs text-text-secondary">
+                <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
+                建议粘贴完整的章节段落，而非片段
+              </li>
+              <li className="flex items-start gap-2 text-xs text-text-secondary">
+                <span className="mt-0.5 shrink-0 w-1 h-1 rounded-full bg-primary/40" />
+                避免纯对话或超短片段，上下文越丰富分析越准确
+              </li>
+            </ul>
           </div>
 
-          {/* 历史评估 — 底部全宽 */}
           <div className="bg-surface rounded-lg border border-border p-5">
-            <div className="flex items-baseline gap-2 mb-3">
-              <h3 className="font-display text-sm text-text">历史评估</h3>
-              {entries.length > 0 && (
-                <span className="text-xs text-text-muted font-mono">最近 {entries.length} 条</span>
-              )}
-            </div>
-            <EvaluationHistory
-              onSelect={(entry) => {
-                if (entry.fullReport) {
-                  useEvaluationStore.setState({ result: entry.fullReport, phase: "done" });
-                }
-              }}
-            />
+            <h3 className="font-display text-sm text-text mb-3">写作小贴士</h3>
+            <ul className="space-y-2">
+              <li className="text-xs text-text-secondary leading-relaxed">
+                黄金三章：开篇 3000 字决定读者去留，Hook 设计至关重要
+              </li>
+              <li className="text-xs text-text-secondary leading-relaxed">
+                爽点节奏：每 500-800 字设置一个小爽点，保持读者追读欲望
+              </li>
+              <li className="text-xs text-text-secondary leading-relaxed">
+                对话与描写的黄金比例建议保持在 3:7 左右
+              </li>
+            </ul>
           </div>
         </div>
+      </div>
+
+      {/* Quick sample texts — below the cards, full width */}
+      <div className="mt-5 flex items-center gap-2">
+        <span className="text-xs text-text-muted shrink-0">快速试试：</span>
+        {SAMPLE_TEXTS.map((sample) => (
+          <button
+            key={sample.label}
+            onClick={() => setText(sample.text)}
+            className="px-3 py-1 bg-primary-bg text-primary border border-primary-lighter rounded-md text-xs hover:bg-primary-lighter/30 transition-colors duration-200"
+          >
+            {sample.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 历史评估 — 全宽，在双栏下方 */}
+      <div className="mt-10 pt-8 border-t border-border">
+        <div className="flex items-baseline gap-2 mb-5">
+          <h3 className="font-display text-lg text-text">历史评估</h3>
+          {entries.length > 0 && (
+            <span className="text-xs text-text-muted font-mono">最近 {entries.length} 条</span>
+          )}
+        </div>
+        <EvaluationHistory
+          onSelect={(entry) => {
+            if (entry.fullReport) {
+              useEvaluationStore.setState({ result: entry.fullReport, phase: "done" });
+            }
+          }}
+        />
       </div>
     </div>
   );
