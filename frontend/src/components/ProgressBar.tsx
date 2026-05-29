@@ -64,7 +64,7 @@ function WaveAnimation() {
 }
 
 export function ProgressBar({ currentStep, currentStepName }: ProgressBarProps) {
-  const progressPct = Math.min(100, Math.round((currentStep / 7) * 100));
+  const progressPct = Math.max(0, Math.min(100, Math.round((currentStep / 7) * 100)));
 
   const visibleSteps = [
     ...PRE_STEPS,
@@ -74,8 +74,8 @@ export function ProgressBar({ currentStep, currentStepName }: ProgressBarProps) 
 
   function computeState(step: number): "completed" | "active" | "pending" {
     if (step < 0) {
-      if (currentStep >= 1) return "completed";
-      if (currentStep === 0 && step === -1) return "active";
+      if (currentStep >= 1 || currentStep > step) return "completed";
+      if (currentStep === step) return "active";
       return "pending";
     }
     if (step <= 7) {
@@ -104,7 +104,7 @@ export function ProgressBar({ currentStep, currentStepName }: ProgressBarProps) 
       </div>
       <div className="flex justify-between text-xs text-text-muted mb-7">
         <span className="text-primary font-medium">
-          {currentStep > 7 ? "评估完成" : `步骤 ${currentStep} / 7`}
+          {currentStep > 7 ? "评估完成" : `步骤 ${Math.max(0, currentStep)} / 7`}
         </span>
         <span className="font-mono tabular-nums">{progressPct}%</span>
       </div>

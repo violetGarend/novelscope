@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ProgressBar } from "./ProgressBar";
 import { ReportCard, ErrorReport } from "./ReportCard";
 import { EvaluationHistory } from "./EvaluationHistory";
@@ -765,21 +765,39 @@ export function EvaluatePage() {
   const handleRetry = useEvaluationStore(selectResetToIdle);
   const submitEvaluation = useEvaluationStore(selectSubmitEvaluation);
   const entries = useHistoryStore(selectEntries);
-  const [pacedStep, setPacedStep] = useState(0);
+  const [pacedStep, setPacedStep] = useState(-3);
+  const paceRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Smooth step progression: pace fast steps at ~1/sec for visual continuity
+  // Timer-based step pacing: runs independently of backend events
   useEffect(() => {
-    if (phase !== "evaluating") { setPacedStep(0); return; }
-    // Step 5 (调用 AI 分析) — show immediately (real wait for AI)
-    if (currentStep === 5) { setPacedStep(5); return; }
-    // Pre-steps (negative) — show immediately
-    if (currentStep < 0) { setPacedStep(currentStep); return; }
-    // Steps 1-4, 6-7: pace at 1/sec toward the real step
-    if (pacedStep < currentStep) {
-      const t = setTimeout(() => setPacedStep((s) => s + 1), 1000);
-      return () => clearTimeout(t);
+    if (phase !== "evaluating") {
+      setPacedStep(-3);
+      if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
+      return;
     }
-  }, [currentStep, phase, pacedStep]);
+
+    // Start timer: tick from -2 → -1 → 0 → 1 → 2 → 3 → 4 at 1/sec
+    setPacedStep(-2);
+    paceRef.current = setInterval(() => {
+      setPacedStep((prev) => {
+        const next = prev + 1;
+        return next >= 4 ? 4 : next; // cap at 4
+      });
+    }, 1000);
+
+    return () => {
+      if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
+    };
+  }, [phase]);
+
+  // Sync: once animation reaches step 4, snap to real backend step
+  useEffect(() => {
+    if (phase !== "evaluating") return;
+    if (pacedStep >= 4 && currentStep > pacedStep) {
+      setPacedStep(currentStep);
+      if (paceRef.current) { clearInterval(paceRef.current); paceRef.current = null; }
+    }
+  }, [phase, currentStep, pacedStep]);
 
   const handleSubmit = useCallback(() => {
     submitEvaluation();

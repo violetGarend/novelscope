@@ -41,15 +41,15 @@ describe("ProgressBar", () => {
     expect(activeItem?.textContent).toContain("构建 AI 提示");
   });
 
-  it("should show warm-up pre-step as active when currentStep is 0", () => {
+  it("should show pre-steps as completed when currentStep is 0 (animation already passed them)", () => {
     render(<ProgressBar currentStep={0} />);
     const items = screen.getAllByRole("listitem");
     expect(items.length).toBe(9);
+    const completed = items.filter((i) => i.getAttribute("data-state") === "completed");
     const active = items.filter((i) => i.getAttribute("data-state") === "active");
-    const pending = items.filter((i) => i.getAttribute("data-state") === "pending");
-    expect(active.length).toBe(1);
-    expect(pending.length).toBe(8);
-    expect(active[0]?.textContent).toContain("加载分析模型");
+    // At step 0, both pre-steps (-2, -1) are completed (animation passed them)
+    expect(completed.length).toBe(2);
+    expect(active.length).toBe(0);
   });
 
   it("should show step 7 as active when currentStep is 7", () => {
