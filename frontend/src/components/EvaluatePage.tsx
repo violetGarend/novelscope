@@ -866,9 +866,9 @@ export function EvaluatePage() {
           </div>
         </div>
 
-        {/* Right column: 评估指南 + 写作小贴士 — top aligns with input card */}
+        {/* Right column: 评估指南 + 写作小贴士 — top and bottom align with input card */}
         <div className="flex-[1] min-w-0 flex flex-col gap-5">
-          <div className="bg-surface rounded-lg border border-border p-5">
+          <div className="flex-1 bg-surface rounded-lg border border-border p-5 flex flex-col">
             <h3 className="font-display text-sm text-text mb-3">评估指南</h3>
             <ul className="space-y-2">
               <li className="flex items-start gap-2 text-xs text-text-secondary">
@@ -886,7 +886,7 @@ export function EvaluatePage() {
             </ul>
           </div>
 
-          <div className="bg-surface rounded-lg border border-border p-5">
+          <div className="flex-1 bg-surface rounded-lg border border-border p-5 flex flex-col">
             <h3 className="font-display text-sm text-text mb-3">写作小贴士</h3>
             <ul className="space-y-2">
               <li className="text-xs text-text-secondary leading-relaxed">
