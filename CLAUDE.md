@@ -38,7 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 单人+AI辅助开发。当前处于 Phase 0（验证期），核心评估管线已完整交付。
 
-**已完成 (P0: 17 个 + P1: 10 个，共 27 个 Issue)：**
+**已完成 (P0: 17 个 + P1: 11 个，共 28 个 Issue)：**
 
 P0:
 | # | 模块 | 说明 |
@@ -74,13 +74,27 @@ P1 (规则引擎 v2):
 | p1-008 | Degrade-Report 独立服务 | 5引擎Feature→中文定性报告，severity 3档措辞，顶部总结句，12个测试 |
 | p1-009 | Filler O(n²) 性能优化 | 段落>200截断至前200段，O(n²)→O(200²)，truncated标记 |
 | p1-010 | 前端适配双模型雷达图+降级UI | EvaluationResultV2三态渲染，双多边形叠加，分歧⚠+tooltip，色盲双重编码 |
+
+P1.2 (用户系统):
+| # | 模块 | 说明 |
+|---|------|------|
 | p1-011 | JWT 认证服务 | 用户模型扩展 + accessToken(15min) + refreshToken(7d httpOnly) + bcrypt + jose |
 
-**测试：** 416 个测试通过（后端 Jest 258 + 前端 Vitest 158）
+**测试：** 428 个测试通过（后端 Jest 282 + 前端 Vitest 146）
 
 **模型：** DeepSeek-v4-flash (temperature=0)，通过 OpenAI SDK 兼容调用
 
-**P1 规划：** [PRD-P1-规则引擎v2重构](docs/prd/PRD-P1-规则引擎v2重构.md) — 规则引擎转型特征提取器 + Prompt v2 锚点评分 + 双模型编排。12 个 Issue 完成（p1-001~011），P1.0~P1.1 交付完成，P1.2 推进中。
+**P1 规划：** [PRD-P1-规则引擎v2重构](docs/prd/PRD-P1-规则引擎v2重构.md) — 规则引擎转型特征提取器 + Prompt v2 锚点评分 + 双模型编排。11 个 Issue 完成（p1-001~011），P1.0~P1.2 交付完成，P1.3 推进中。
+
+## 最近更新 (2026-05-30)
+
+**UI 重设计 (P1.3):** 评估报告页完整重构为杂志编辑排版风格：
+- 编辑式标题 + 文章流布局 + Instrument Serif 标题 + 非对称双栏(7:2) + 侧栏编辑笔记
+- 亮点五色分类体系（Hook蓝/对白紫/节奏绿/情感青/爽点绿）+ 标签轮换 + 模块标题10组随机文案
+- 细节提示双维度颜色分级（类型×严重度）+ 三级图标(!/▼/▲)
+- 步骤进度独立计时器动画（1→5暂停等AI，6→7恢复），7步可见
+- RadarChart hero 变体（440×440 viewBox）
+- Pull Quote 引言 + 节奏曲线全宽展示 + 斑马纹细节列表
 
 参考 `docs/prd/PRD-P0-追读力评估原型.md` 和 `docs/issues/` 获取完整里程碑。
 

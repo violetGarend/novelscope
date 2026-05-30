@@ -84,6 +84,7 @@ describe("EvaluationHistory component", () => {
   it("should show empty message when no history", () => {
     render(<EvaluationHistory />);
     expect(screen.getByText(/暂无评估历史/i)).toBeInTheDocument();
+    expect(screen.getByText(/完成评估后，报告将自动保存在此处/)).toBeInTheDocument();
   });
 
   it("should display saved entries with text summary and time", () => {

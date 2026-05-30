@@ -40,7 +40,12 @@ describe("EvaluatePage", () => {
 
   it("should not show progress bar initially", () => {
     render(<EvaluatePage />);
-    expect(screen.queryByRole("list")).toBeNull();
+    // ProgressBar renders <ol> with step items; no "步骤" text should appear in idle phase
+    expect(screen.queryByText(/步骤/)).toBeNull();
+    // ProgressBar's <ol> has class starting with "space-y-2" and contains step items
+    const lists = screen.queryAllByRole("list");
+    const progressBars = lists.filter((el) => el.tagName === "OL");
+    expect(progressBars).toHaveLength(0);
   });
 
   it("should show progress bar and hide form when evaluation starts", async () => {
@@ -64,9 +69,9 @@ describe("EvaluatePage", () => {
     fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // Progress bar should appear, form should disappear
+    // Progress bar should appear (identifiable by its step text), form should disappear
     await waitFor(() => {
-      expect(screen.getByRole("list")).toBeInTheDocument();
+      expect(screen.getByText(/步骤/)).toBeInTheDocument();
     });
     expect(screen.queryByPlaceholderText(/输入章节文本/i)).toBeNull();
   });
@@ -133,13 +138,13 @@ describe("EvaluatePage", () => {
     fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // ReportCard should appear with scores and highlights
+    // ReportCard should appear with magazine editorial layout
     await waitFor(() => {
-      expect(screen.getByText("评估报告")).toBeInTheDocument();
+      expect(screen.getByText(/做得好的地方|表现亮眼|值得保留|本章的强项|可圈可点|出彩的瞬间|写得好的段落|加分亮点|读者会喜欢|保持住/)).toBeInTheDocument();
     });
     expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
-    expect(screen.getByText("亮点分析")).toBeInTheDocument();
-    expect(screen.getByText("开头冲突感强")).toBeInTheDocument();
+    // Headline uses first highlight — text appears twice (headline + highlight paragraph)
+    expect(screen.getAllByText(/开头冲突感强/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("should show ErrorReport with retry button when fetch fails", async () => {
@@ -158,13 +163,12 @@ describe("EvaluatePage", () => {
     });
   });
 
-  it("should show skeleton placeholder while waiting for first progress event", async () => {
+  it("should show progress bar immediately when evaluation starts", async () => {
     const user = userEvent.setup();
     // Create a stream that delays the first event
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
-        // Small delay to ensure the skeleton state is observable
         controller.enqueue(encoder.encode("")); // empty chunk
       },
     });
@@ -181,13 +185,62 @@ describe("EvaluatePage", () => {
     fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // Skeleton should be visible while currentStep is 0
-    expect(screen.getByTestId("skeleton")).toBeInTheDocument();
+    // ProgressBar should appear immediately with step text (animation drives display)
+    expect(screen.getByText(/步骤/)).toBeInTheDocument();
+  });
+
+  it("should show evaluation guide and writing tips in right panel", () => {
+    render(<EvaluatePage />);
+    // Evaluation guide
+    expect(screen.getByText("评估指南")).toBeInTheDocument();
+    expect(screen.getByText(/至少输入 1,000 字/)).toBeInTheDocument();
+    expect(screen.getByText(/建议粘贴完整的章节段落/)).toBeInTheDocument();
+    // Writing tips
+    expect(screen.getByText("写作小贴士")).toBeInTheDocument();
+    expect(screen.getByText(/黄金三章/)).toBeInTheDocument();
+    expect(screen.getByText(/爽点节奏/)).toBeInTheDocument();
+  });
+
+  it("should show quick sample buttons below input card", () => {
+    render(<EvaluatePage />);
+    expect(screen.getByText("快速试试：")).toBeInTheDocument();
+    // Only sample buttons, not history entries
+    const buttons = screen.getAllByRole("button");
+    const sampleButtons = buttons.filter((b) =>
+      b.textContent?.includes("（")
+    );
+    expect(sampleButtons).toHaveLength(3);
+  });
+
+  it("should fill textarea when sample button is clicked", async () => {
+    const user = userEvent.setup();
+    render(<EvaluatePage />);
+
+    const textarea = screen.getByPlaceholderText(/输入章节文本/i);
+    expect(textarea).toHaveValue("");
+
+    const allButtons = screen.getAllByRole("button");
+    const ch1Button = allButtons.find((b) => b.textContent?.includes("第1章（荒年）"))!;
+    await user.click(ch1Button);
+
+    expect(textarea).not.toHaveValue("");
+    expect(Number(screen.getByTestId("char-count").textContent)).toBeGreaterThan(100);
   });
 
   it("should disable submit button when text is too short", async () => {
     render(<EvaluatePage />);
     const button = screen.getByRole("button", { name: /开始评估/i });
     expect(button).toBeDisabled();
+  });
+
+  it("should display character count and update on input", () => {
+    render(<EvaluatePage />);
+    // Initial state: 0 字
+    expect(screen.getByTestId("char-count")).toHaveTextContent("0");
+
+    const textarea = screen.getByPlaceholderText(/输入章节文本/i);
+    fireEvent.change(textarea, { target: { value: "测试文本内容" } });
+
+    expect(screen.getByTestId("char-count")).toHaveTextContent("6");
   });
 });
