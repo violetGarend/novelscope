@@ -15,6 +15,8 @@ interface RadarChartProps {
   };
   /** Dimension keys with divergence (>2 delta) */
   divergenceDims?: string[];
+  /** Visual size variant */
+  size?: "default" | "hero";
 }
 
 interface AxisDef {
@@ -41,10 +43,19 @@ export function RadarChart({
   modelName = "DeepSeek",
   secondModel,
   divergenceDims,
+  size = "default",
 }: RadarChartProps) {
-  const cx = 170;
-  const cy = 170;
-  const maxR = 110;
+  const isHero = size === "hero";
+  const cx = isHero ? 220 : 170;
+  const cy = isHero ? 220 : 170;
+  const maxR = isHero ? 150 : 110;
+  const viewBox = isHero ? "0 0 440 440" : "0 0 340 340";
+  const wrapperClass = isHero ? "w-full max-w-[540px] mx-auto" : "w-full max-w-[420px] mx-auto";
+  const fontSize = isHero ? 13 : 11;
+  const scoreFontSize = isHero ? 11 : 10;
+  const gridFontSize = isHero ? 10 : 9;
+  const pointR = isHero ? 5 : 4;
+  const legendClass = isHero ? "text-sm" : "text-xs";
   const dimLabels = labels ?? {
     hook: "Hook",
     climax: "爽点密度",
@@ -53,6 +64,7 @@ export function RadarChart({
   };
 
   const isDual = secondModel !== undefined;
+  const labelOffset = isHero ? 32 : 24;
 
   const point = (angle: number, score: number) => {
     const r = (score / 10) * maxR;
@@ -79,13 +91,12 @@ export function RadarChart({
   const polygonPoints = axes.map((a) => `${a.x},${a.y}`).join(" ");
   const secondPolygonPoints = secondAxes?.map((a) => `${a.x},${a.y}`).join(" ");
 
-  const labelOffset = (angle: number) => {
-    const offset = 24;
+  const labelOffsetFn = (angle: number) => {
     let dx = 0, dy = 0;
-    if (angle === -Math.PI / 2) dy = -offset;
-    else if (angle === 0) dx = offset;
-    else if (angle === Math.PI / 2) dy = offset;
-    else dx = -offset;
+    if (angle === -Math.PI / 2) dy = -labelOffset;
+    else if (angle === 0) dx = labelOffset;
+    else if (angle === Math.PI / 2) dy = labelOffset;
+    else dx = -labelOffset;
     return { dx, dy };
   };
 
@@ -98,8 +109,8 @@ export function RadarChart({
   return (
     <div>
       <svg
-        viewBox="0 0 340 340"
-        className="w-full max-w-[420px] mx-auto"
+        viewBox={viewBox}
+        className={wrapperClass}
         role="img"
         aria-label={ariaLabel}
       >
@@ -126,7 +137,7 @@ export function RadarChart({
               x={cx}
               y={cy - r - 4}
               className="fill-text-muted"
-              fontSize={9}
+              fontSize={gridFontSize}
               textAnchor="middle"
             >
               {level}
@@ -182,7 +193,7 @@ export function RadarChart({
             key={`point-${axis.key}`}
             cx={axis.x}
             cy={axis.y}
-            r={4}
+            r={pointR}
             fill={scoreColor(axis.score)}
             stroke="#FFFFFF"
             strokeWidth={1.5}
@@ -195,7 +206,7 @@ export function RadarChart({
             key={`point-b-${axis.key}`}
             cx={axis.x}
             cy={axis.y}
-            r={4}
+            r={pointR}
             fill={secondModel.color}
             stroke="#FFFFFF"
             strokeWidth={1.5}
@@ -206,7 +217,7 @@ export function RadarChart({
         {axes.map((axis) => {
           const endX = cx + (maxR + 10) * Math.cos(axis.angle);
           const endY = cy + (maxR + 10) * Math.sin(axis.angle);
-          const { dx, dy } = labelOffset(axis.angle);
+          const { dx, dy } = labelOffsetFn(axis.angle);
 
           let textAnchor: "start" | "middle" | "end" = "middle";
           if (axis.angle === 0) textAnchor = "start";
@@ -220,20 +231,20 @@ export function RadarChart({
                 x={endX + dx}
                 y={endY + dy - 3}
                 className="fill-text"
-                fontSize={11}
+                fontSize={fontSize}
                 fontWeight={500}
                 textAnchor={textAnchor}
               >
                 {axis.label}
                 {hasDivergence && (
-                  <tspan fill="#D97706" fontSize={10}> ⚠</tspan>
+                  <tspan fill="#D97706" fontSize={scoreFontSize}> ⚠</tspan>
                 )}
               </text>
               <text
                 x={endX + dx}
                 y={endY + dy + 11}
                 className="fill-text-muted"
-                fontSize={10}
+                fontSize={scoreFontSize}
                 textAnchor={textAnchor}
               >
                 {Number.isInteger(axis.score)
@@ -247,7 +258,7 @@ export function RadarChart({
 
       {/* Legend (dual mode only) */}
       {isDual && (
-        <div className="flex items-center justify-center gap-6 mt-3 font-mono text-xs text-text-muted">
+        <div className={`flex items-center justify-center gap-6 mt-3 font-mono ${legendClass} text-text-muted`}>
           <div className="flex items-center gap-2">
             <svg width="20" height="4" className="shrink-0">
               <line x1={0} y1={2} x2={20} y2={2} stroke="#1E40AF" strokeWidth={2} />

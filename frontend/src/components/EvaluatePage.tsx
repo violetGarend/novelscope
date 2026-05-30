@@ -944,7 +944,7 @@ export function EvaluatePage() {
           <button
             key={sample.label}
             onClick={() => setText(sample.text)}
-            className="px-3 py-1 bg-primary-bg text-primary border border-primary-lighter rounded-md text-xs hover:bg-primary-lighter/30 transition-colors duration-200"
+            className="px-3 py-1 bg-primary-bg text-primary border border-primary-lighter rounded-md text-xs hover:bg-primary-lighter/30 transition-colors duration-200 cursor-pointer"
           >
             {sample.label}
           </button>

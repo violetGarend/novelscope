@@ -138,13 +138,13 @@ describe("EvaluatePage", () => {
     fireEvent.change(textarea, { target: { value: getRandomTestChapter() } });
     await user.click(screen.getByRole("button", { name: /开始评估/i }));
 
-    // ReportCard should appear with scores and highlights
+    // ReportCard should appear with magazine editorial layout
     await waitFor(() => {
-      expect(screen.getByText("评估报告")).toBeInTheDocument();
+      expect(screen.getByText("做得好的地方")).toBeInTheDocument();
     });
     expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
-    expect(screen.getByText("亮点分析")).toBeInTheDocument();
-    expect(screen.getByText("开头冲突感强")).toBeInTheDocument();
+    // Headline uses first highlight — text appears twice (headline + highlight paragraph)
+    expect(screen.getAllByText(/开头冲突感强/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("should show ErrorReport with retry button when fetch fails", async () => {
