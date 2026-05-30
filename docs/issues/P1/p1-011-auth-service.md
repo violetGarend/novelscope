@@ -22,16 +22,16 @@
 
 ## Acceptance criteria
 
-- [ ] 注册成功返回 access token + httpOnly refresh token cookie
-- [ ] 重复邮箱注册返回 409 错误 + 中文提示
-- [ ] 弱密码（< 8 字符）返回 400 错误
-- [ ] 登录成功/失败（错误密码/不存在用户）均有正确响应
-- [ ] refresh 有效 token → 新 access token；过期 token → 401
-- [ ] /api/auth/me 有效 token → 用户信息；无/过期 token → 401
-- [ ] 密码以 bcryptjs 哈希存储，不存明文
-- [ ] `npx prisma migrate` 成功执行，User 表新字段可用
-- [ ] 后端测试覆盖所有 API 路由（成功 + 错误路径），约 15 个测试
-- [ ] 已有 289 个测试全部通过
+- [x] 注册成功返回 access token + httpOnly refresh token cookie
+- [x] 重复邮箱注册返回 409 错误 + 中文提示
+- [x] 弱密码（< 8 字符）返回 400 错误
+- [x] 登录成功/失败（错误密码/不存在用户）均有正确响应
+- [x] refresh 有效 token → 新 access token；过期 token → 401
+- [x] /api/auth/me 有效 token → 用户信息；无/过期 token → 401
+- [x] 密码以 bcryptjs 哈希存储，不存明文
+- [x] `npx prisma migrate` 成功执行，User 表新字段可用
+- [x] 后端测试覆盖所有 API 路由（成功 + 错误路径），约 15 个测试
+- [x] 已有 289 个测试全部通过（当前 443 个，后端 282 + 前端 161）
 
 ## Blocked by
 
