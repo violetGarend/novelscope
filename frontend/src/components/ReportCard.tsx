@@ -224,6 +224,20 @@ function SectionTitle({ children }: { children: string }) {
   return <h2 className="font-display italic text-[30px] leading-tight text-text mb-8 pb-4 border-b border-border-light">{children}</h2>;
 }
 
+const HIGHLIGHTS_TITLES = ["做得好的地方", "表现亮眼的部分", "值得保留的写法", "本章的强项", "可圈可点之处", "出彩的瞬间", "写得好的段落", "加分亮点", "读者会喜欢的地方", "保持住的部分"];
+
+const SUGGESTIONS_TITLES = ["可以更强的地方", "可以打磨的部分", "值得优化的细节", "提升空间", "还可以更好", "待改进之处", "下次可以试试", "优化的方向", "精益求精的部分", "再推敲一下"];
+
+function pickSectionTitle(variants: string[], seed: string): string {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  return variants[Math.abs(hash) % variants.length];
+}
+
+function SectionBody({ children }: { children: React.ReactNode }) {
+  return <div className="bg-surface rounded-[2px] pt-9 pb-2 px-9 shadow-[0_1px_0_#E5E5E0,0_-1px_0_#E5E5E0] mb-14">{children}</div>;
+}
+
 function Cols({ children }: { children: React.ReactNode }) {
   return <div className="flex gap-14 items-start mb-14">{children}</div>;
 }
@@ -241,11 +255,11 @@ function SideCol({ title, children }: { title: string; children: React.ReactNode
   );
 }
 const HIGHLIGHT_CATEGORIES = [
-  { key: "hook", keywords: ["开头", "开篇", "开场", "第一", "hook", "抓住", "冲突感", "迅速"], color: "#3B82F6", bg: "bg-primary-bg/40", textColor: "text-primary-light", labels: ["开篇有力", "抓人开头", "黄金三章"] },
-  { key: "dialogue", keywords: ["对话", "对白", "角色", "声音", "人物", "台词"], color: "#7C3AED", bg: "bg-purple-50/60", textColor: "text-[#7C3AED]", labels: ["角色鲜活", "对白出彩", "声音分明"] },
-  { key: "pacing", keywords: ["节奏", "流畅", "紧凑", "结构", "张力"], color: "#059669", bg: "bg-success-bg/30", textColor: "text-success", labels: ["节奏得当", "张弛有度", "行文流畅"] },
-  { key: "emotion", keywords: ["情感", "情绪", "共鸣", "温暖", "感动", "温馨", "温情"], color: "#0891B2", bg: "bg-cyan-50/60", textColor: "text-[#0891B2]", labels: ["情感共鸣", "打动人心", "共情时刻"] },
-  { key: "climax", keywords: ["爽点", "转折", "悬念", "反转", "高潮", "结尾", "章末", "系统", "金手指", "释放"], color: "#059669", bg: "bg-success-bg/30", textColor: "text-success", labels: ["爽点到位", "转折有力", "追读动力"] },
+  { key: "hook", keywords: ["开头", "开篇", "开场", "第一", "hook", "抓住", "冲突感", "迅速"], color: "#3B82F6", bg: "bg-primary-bg", textColor: "text-primary", labels: ["开篇有力", "抓人开头", "黄金三章"] },
+  { key: "dialogue", keywords: ["对话", "对白", "角色", "声音", "人物", "台词"], color: "#7C3AED", bg: "bg-purple-100/70", textColor: "text-[#7C3AED]", labels: ["角色鲜活", "对白出彩", "声音分明"] },
+  { key: "pacing", keywords: ["节奏", "流畅", "紧凑", "结构", "张力"], color: "#059669", bg: "bg-success-bg/70", textColor: "text-success", labels: ["节奏得当", "张弛有度", "行文流畅"] },
+  { key: "emotion", keywords: ["情感", "情绪", "共鸣", "温暖", "感动", "温馨", "温情"], color: "#0891B2", bg: "bg-cyan-100/70", textColor: "text-[#0891B2]", labels: ["情感共鸣", "打动人心", "共情时刻"] },
+  { key: "climax", keywords: ["爽点", "转折", "悬念", "反转", "高潮", "结尾", "章末", "系统", "金手指", "释放"], color: "#059669", bg: "bg-success-bg/70", textColor: "text-success", labels: ["爽点到位", "转折有力", "追读动力"] },
 ];
 
 function classifyHighlight(text: string): { color: string; bg: string; textColor: string; label: string } {
@@ -257,7 +271,7 @@ function classifyHighlight(text: string): { color: string; bg: string; textColor
       }
     }
   }
-  return { color: "#1E40AF", bg: "bg-primary-bg/40", textColor: "text-primary", label: "亮点" };
+  return { color: "#1E40AF", bg: "bg-primary-bg/75", textColor: "text-primary", label: "亮点" };
 }
 
 function pickLabel(catKey: string, index: number): string {
@@ -269,12 +283,12 @@ function pickLabel(catKey: string, index: number): string {
 function HighlightParagraph({ text, index, catKey }: { text: string; index: number; catKey: string }) {
   const cls = HIGHLIGHT_CATEGORIES.find((c) => c.key === catKey);
   const color = cls?.color ?? "#1E40AF";
-  const bg = cls?.bg ?? "bg-primary-bg/40";
+  const bg = cls?.bg ?? "bg-primary-bg/75";
   const textColor = cls?.textColor ?? "text-primary";
   const label = pickLabel(catKey, index);
 
   return (
-    <div className={`pl-4 py-3 pr-4 border-l-[3px] rounded-r-lg mb-4 ${bg}`} style={{ borderLeftColor: color }}>
+    <div className={`pl-4 py-3 pr-4 border-l-[4px] rounded-r-lg mb-4 ${bg}`} style={{ borderLeftColor: color }}>
       <div className={`text-[10px] font-semibold tracking-[1px] mb-1 ${textColor}`}>{label}</div>
       <p className="text-[15px] leading-relaxed text-[#3D3D3D]">{text}</p>
     </div>
@@ -283,9 +297,9 @@ function HighlightParagraph({ text, index, catKey }: { text: string; index: numb
 
 function SuggestionBlock({ suggestion }: { suggestion: SuggestionItem }) {
   const cfg = SEVERITY_CONFIG[suggestion.severity];
-  const bgCls = suggestion.severity === "critical" ? "bg-error-bg/30" : suggestion.severity === "warning" ? "bg-warning-bg/20" : "bg-primary-bg/40";
+  const bgCls = suggestion.severity === "critical" ? "bg-error-bg/60" : suggestion.severity === "warning" ? "bg-warning-bg/60" : "bg-primary-bg/75";
   return (
-    <div className={`pl-4 py-3 pr-4 border-l-[3px] rounded-r-lg mb-4 ${bgCls}`}
+    <div className={`pl-4 py-3 pr-4 border-l-[4px] rounded-r-lg mb-4 ${bgCls}`}
       style={{ borderLeftColor: suggestion.severity === "critical" ? "#DC2626" : suggestion.severity === "warning" ? "#D97706" : "#3B82F6" }}>
       <div className={`text-[10px] font-semibold uppercase tracking-[1px] mb-1 ${cfg.color}`}>
         {cfg.icon} {cfg.label}
@@ -337,7 +351,7 @@ function PacingStrip({ curve, cv, typeRatio }: {
 
 function NotesStrip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-border-light -mx-10 mb-14 py-12 px-10 border-t border-border">
+    <div className="mb-14 py-12 px-10 border-t border-border">
       <div className="max-w-[920px] mx-auto">
         {children}
       </div>
@@ -345,13 +359,36 @@ function NotesStrip({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NoteItem({ label, children }: { label: string; children: React.ReactNode }) {
+function NotesSectionTitle({ children }: { children: string }) {
   return (
-    <div className="flex items-start gap-3 py-3 px-4 mb-2 text-[13px] text-text-secondary bg-white/60 rounded-md last:mb-0">
-      <span className="w-[22px] h-[22px] rounded-full bg-white text-warning flex items-center justify-center text-[11px] font-bold shrink-0 mt-px border border-border">!</span>
+    <div className="mb-8">
+      <h2 className="font-display italic text-[34px] leading-tight text-text mb-3">{children}</h2>
+      <div className="h-px bg-border-light" />
+    </div>
+  );
+}
+
+const NOTE_SEVERITY = {
+  high: { icon: "!", iconColor: "text-error", border: "border-l-[3px] border-l-error" },
+  medium: { icon: "▼", iconColor: "text-warning", border: "border-l-[3px] border-l-warning" },
+  low: { icon: "▲", iconColor: "text-primary-light", border: "border-l-[3px] border-l-primary-light" },
+} as const;
+
+const NOTE_TYPE_BADGE = {
+  filler: "bg-warning-bg/80 text-warning",
+  similarity: "bg-purple-100 text-[#7C3AED]",
+  consistency: "bg-primary-bg text-primary",
+} as const;
+
+function NoteItem({ label, children, severity = "medium", type = "filler" }: { label: string; children: React.ReactNode; severity?: keyof typeof NOTE_SEVERITY; type?: keyof typeof NOTE_TYPE_BADGE }) {
+  const s = NOTE_SEVERITY[severity];
+  const badgeCls = NOTE_TYPE_BADGE[type];
+  return (
+    <div className={`flex items-baseline gap-3 py-3 px-4 mb-2 text-[13px] text-text-secondary bg-white/60 rounded-md last:mb-0 ${s.border}`}>
+      <span className={`w-[22px] h-[22px] rounded-full bg-white inline-flex items-center justify-center font-bold shrink-0 border-2 ${s.iconColor}`}><span style={{ fontSize: severity === "high" ? 15 : 10, lineHeight: 1, transform: "translateY(0.5px)" }}>{s.icon}</span></span>
       <div>
-        <div className="text-[10px] font-semibold text-[#8B8B83] uppercase tracking-[0.5px] mb-[3px]">{label}</div>
-        {children}
+        <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-[0.5px] mb-1.5 ${badgeCls}`}>{label}</span>
+        <div>{children}</div>
       </div>
     </div>
   );
@@ -453,9 +490,9 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
 
       {/* Section 01: Highlights */}
       {allHighlights.length > 0 && (
-        <>
+        <SectionBody>
           <SectionNum n="01" />
-          <SectionTitle>做得好的地方</SectionTitle>
+          <SectionTitle>{pickSectionTitle(HIGHLIGHTS_TITLES, allHighlights[0] ?? "")}</SectionTitle>
           <Cols>
             <MainCol>
               {allHighlights.map((h, i) => <HighlightParagraph key={i} text={h} index={hlLabels[i].index} catKey={hlLabels[i].label} />)}
@@ -473,7 +510,7 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
               </p>
             </SideCol>
           </Cols>
-        </>
+        </SectionBody>
       )}
 
       {/* Pacing — full width between sections */}
@@ -486,9 +523,9 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
 
       {/* Section 02: Suggestions */}
       {allSuggestions.length > 0 && (
-        <>
+        <SectionBody>
           <SectionNum n="02" />
-          <SectionTitle>可以更强的地方</SectionTitle>
+          <SectionTitle>{pickSectionTitle(SUGGESTIONS_TITLES, allSuggestions[0]?.issue ?? "")}</SectionTitle>
           <Cols>
             <MainCol>
               {allSuggestions.map((s, i) => (
@@ -507,26 +544,26 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
               </p>
             </SideCol>
           </Cols>
-        </>
+        </SectionBody>
       )}
 
       {/* Section 03: Notes strip */}
       {hasNotes && (
         <NotesStrip>
           <SectionNum n="03" />
-          <SectionTitle>细节提示</SectionTitle>
+          <NotesSectionTitle>细节提示</NotesSectionTitle>
           {features.filler.items.map((item, i) => (
-            <NoteItem key={`fl-${i}`} label="注水检测">
-              <p>第 {item.paragraph} 段：{item.reason}{item.suggestion && ` → ${item.suggestion}`}</p>
+            <NoteItem key={`fl-${i}`} label="注水检测" type="filler">
+              <p><span className="text-text-muted">第{item.paragraph}段</span> {item.reason}{item.suggestion && <span className="text-text-muted"> → {item.suggestion}</span>}</p>
             </NoteItem>
           ))}
           {features.filler.suspiciousPairs.map((pair, i) => (
-            <NoteItem key={`sp-${i}`} label="相似段落">
-              <p className="font-mono text-xs">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段 (相似度: {Math.round(pair.similarity * 100)}%)</p>
+            <NoteItem key={`sp-${i}`} label="相似段落" type="similarity" severity={pair.similarity > 0.8 ? "high" : pair.similarity > 0.6 ? "medium" : "low"}>
+              <p className="text-xs"><span className="text-text-muted">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段</span> <span className="font-semibold text-warning">{Math.round(pair.similarity * 100)}%</span></p>
             </NoteItem>
           ))}
           {allConsistencyIssues.map((issue, i) => (
-            <NoteItem key={`cs-${i}`} label="一致性">
+            <NoteItem key={`cs-${i}`} label="一致性" type="consistency" severity={/矛盾|错误|冲突|BUG|严重/.test(issue) ? "high" : "medium"}>
               <p>{issue}</p>
             </NoteItem>
           ))}
@@ -568,15 +605,15 @@ function V2PartialReport({ report }: { report: EvaluationResultV2 & { status: "p
       {hasNotes && (
         <NotesStrip>
           <SectionNum n="01" />
-          <SectionTitle>细节提示</SectionTitle>
+          <NotesSectionTitle>细节提示</NotesSectionTitle>
           {features.filler.items.map((item, i) => (
-            <NoteItem key={`fl-${i}`} label="注水检测">
-              <p>第 {item.paragraph} 段：{item.reason}{item.suggestion && ` → ${item.suggestion}`}</p>
+            <NoteItem key={`fl-${i}`} label="注水检测" type="filler">
+              <p><span className="text-text-muted">第{item.paragraph}段</span> {item.reason}{item.suggestion && <span className="text-text-muted"> → {item.suggestion}</span>}</p>
             </NoteItem>
           ))}
           {features.filler.suspiciousPairs.map((pair, i) => (
-            <NoteItem key={`sp-${i}`} label="相似段落">
-              <p className="font-mono text-xs">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段 (相似度: {Math.round(pair.similarity * 100)}%)</p>
+            <NoteItem key={`sp-${i}`} label="相似段落" type="similarity" severity={pair.similarity > 0.8 ? "high" : pair.similarity > 0.6 ? "medium" : "low"}>
+              <p className="text-xs"><span className="text-text-muted">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段</span> <span className="font-semibold text-warning">{Math.round(pair.similarity * 100)}%</span></p>
             </NoteItem>
           ))}
         </NotesStrip>
@@ -617,15 +654,15 @@ function V2DegradedReport({ report, onRetry }: { report: EvaluationResultV2 & { 
       {hasNotes && (
         <NotesStrip>
           <SectionNum n="01" />
-          <SectionTitle>细节提示</SectionTitle>
+          <NotesSectionTitle>细节提示</NotesSectionTitle>
           {features.filler.items.map((item, i) => (
-            <NoteItem key={`fl-${i}`} label="注水检测">
-              <p>第 {item.paragraph} 段：{item.reason}{item.suggestion && ` → ${item.suggestion}`}</p>
+            <NoteItem key={`fl-${i}`} label="注水检测" type="filler">
+              <p><span className="text-text-muted">第{item.paragraph}段</span> {item.reason}{item.suggestion && <span className="text-text-muted"> → {item.suggestion}</span>}</p>
             </NoteItem>
           ))}
           {features.filler.suspiciousPairs.map((pair, i) => (
-            <NoteItem key={`sp-${i}`} label="相似段落">
-              <p className="font-mono text-xs">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段 (相似度: {Math.round(pair.similarity * 100)}%)</p>
+            <NoteItem key={`sp-${i}`} label="相似段落" type="similarity" severity={pair.similarity > 0.8 ? "high" : pair.similarity > 0.6 ? "medium" : "low"}>
+              <p className="text-xs"><span className="text-text-muted">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段</span> <span className="font-semibold text-warning">{Math.round(pair.similarity * 100)}%</span></p>
             </NoteItem>
           ))}
         </NotesStrip>
@@ -681,9 +718,9 @@ function OldReport({ report }: { report: EvaluationReport }) {
       )}
 
       {hasLLM && llmResult.highlights.length > 0 && (
-        <>
+        <SectionBody>
           <SectionNum n="01" />
-          <SectionTitle>做得好的地方</SectionTitle>
+          <SectionTitle>{pickSectionTitle(HIGHLIGHTS_TITLES, llmResult.highlights[0] ?? "")}</SectionTitle>
           <Cols>
             <MainCol>
               {llmResult.highlights.map((h, i) => <HighlightParagraph key={i} text={h} index={hlLabelsOld[i].index} catKey={hlLabelsOld[i].label} />)}
@@ -694,7 +731,7 @@ function OldReport({ report }: { report: EvaluationReport }) {
               </p>
             </SideCol>
           </Cols>
-        </>
+        </SectionBody>
       )}
 
       <PacingStrip curve={report.pacingResult.curve} cv={report.pacingResult.cv} typeRatio={report.pacingResult.typeRatio} />
@@ -704,9 +741,9 @@ function OldReport({ report }: { report: EvaluationReport }) {
       )}
 
       {hasLLM && sortedSuggestions.length > 0 && (
-        <>
+        <SectionBody>
           <SectionNum n="02" />
-          <SectionTitle>可以更强的地方</SectionTitle>
+          <SectionTitle>{pickSectionTitle(SUGGESTIONS_TITLES, sortedSuggestions[0]?.issue ?? "")}</SectionTitle>
           <Cols>
             <MainCol>
               {sortedSuggestions.map((s, i) => <SuggestionBlock key={i} suggestion={s} />)}
@@ -719,25 +756,25 @@ function OldReport({ report }: { report: EvaluationReport }) {
               </p>
             </SideCol>
           </Cols>
-        </>
+        </SectionBody>
       )}
 
       {hasNotes && (
         <NotesStrip>
           <SectionNum n="03" />
-          <SectionTitle>细节提示</SectionTitle>
+          <NotesSectionTitle>细节提示</NotesSectionTitle>
           {report.fillerResult.items.map((item, i) => (
-            <NoteItem key={`fl-${i}`} label="注水检测">
-              <p>第 {item.paragraph} 段：{item.reason}{item.suggestion && ` → ${item.suggestion}`}</p>
+            <NoteItem key={`fl-${i}`} label="注水检测" type="filler">
+              <p><span className="text-text-muted">第{item.paragraph}段</span> {item.reason}{item.suggestion && <span className="text-text-muted"> → {item.suggestion}</span>}</p>
             </NoteItem>
           ))}
           {report.fillerResult.suspiciousPairs.map((pair, i) => (
-            <NoteItem key={`sp-${i}`} label="相似段落">
-              <p className="font-mono text-xs">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段 (相似度: {Math.round(pair.similarity * 100)}%)</p>
+            <NoteItem key={`sp-${i}`} label="相似段落" type="similarity" severity={pair.similarity > 0.8 ? "high" : pair.similarity > 0.6 ? "medium" : "low"}>
+              <p className="text-xs"><span className="text-text-muted">第{pair.paragraphA}段 ↔ 第{pair.paragraphB}段</span> <span className="font-semibold text-warning">{Math.round(pair.similarity * 100)}%</span></p>
             </NoteItem>
           ))}
           {hasLLM && llmResult.consistencyIssues.map((issue, i) => (
-            <NoteItem key={`cs-${i}`} label="一致性">
+            <NoteItem key={`cs-${i}`} label="一致性" type="consistency" severity={/矛盾|错误|冲突|BUG|严重/.test(issue) ? "high" : "medium"}>
               <p>{issue}</p>
             </NoteItem>
           ))}

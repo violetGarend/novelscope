@@ -140,7 +140,7 @@ describe("EvaluatePage", () => {
 
     // ReportCard should appear with magazine editorial layout
     await waitFor(() => {
-      expect(screen.getByText("做得好的地方")).toBeInTheDocument();
+      expect(screen.getByText(/做得好的地方|表现亮眼|值得保留|本章的强项|可圈可点|出彩的瞬间|写得好的段落|加分亮点|读者会喜欢|保持住/)).toBeInTheDocument();
     });
     expect(screen.getByLabelText("四维雷达图")).toBeInTheDocument();
     // Headline uses first highlight — text appears twice (headline + highlight paragraph)

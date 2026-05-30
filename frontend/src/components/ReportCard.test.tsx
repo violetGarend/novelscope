@@ -129,7 +129,7 @@ describe("ReportCard — full report (old format)", () => {
   it("should render highlights as editorial paragraphs", () => {
     render(<ReportCard report={FULL_REPORT} />);
     // Magazine: highlights are flowing paragraphs in Section 01, not labeled cards
-    expect(screen.getByText("做得好的地方")).toBeInTheDocument();
+    expect(screen.getByText(/做得好的地方|表现亮眼|值得保留|本章的强项|可圈可点|出彩的瞬间|写得好的段落|加分亮点|读者会喜欢|保持住/)).toBeInTheDocument();
     // Text appears in both headline and highlight — use getAllByText
     expect(screen.getAllByText(/开头冲突感强/).length).toBeGreaterThanOrEqual(1);
   });
@@ -138,7 +138,7 @@ describe("ReportCard — full report (old format)", () => {
     // Magazine: radar is in the HeroChart section at the top.
     render(<ReportCard report={FULL_REPORT} />);
     const heroSection = document.querySelector(".shadow-\\[0_1px_0_\\#E5E5E0\\,0_-1px_0_\\#E5E5E0\\]");
-    const highlightsSection = screen.getByText("做得好的地方");
+    const highlightsSection = screen.getByText(/做得好的地方|表现亮眼|值得保留|本章的强项|可圈可点|出彩的瞬间|写得好的段落|加分亮点|读者会喜欢|保持住/);
     expect(heroSection).not.toBeNull();
     expect(highlightsSection).toBeInTheDocument();
   });
@@ -407,8 +407,8 @@ describe("ReportCard — V2 complete state", () => {
 
   it("should show highlights as editorial paragraphs from both models", () => {
     render(<ReportCard report={V2_COMPLETE} />);
-    // Magazine: highlights are flowing paragraphs with section "做得好的地方"
-    expect(screen.getByText("做得好的地方")).toBeInTheDocument();
+    // Magazine: highlights are flowing paragraphs with a randomized section title
+    expect(screen.getByText(/做得好的地方|表现亮眼|值得保留|本章的强项|可圈可点|出彩的瞬间|写得好的段落|加分亮点|读者会喜欢|保持住/)).toBeInTheDocument();
     // Text appears in both headline and highlight paragraph — use getAllByText
     expect(screen.getAllByText(/开头冲突感强/).length).toBeGreaterThanOrEqual(1);
     // "结尾悬念设置有力" appears in both highlight paragraph and pull quote
@@ -418,7 +418,7 @@ describe("ReportCard — V2 complete state", () => {
   it("should show suggestions with merged+sorted content from both models", () => {
     render(<ReportCard report={V2_COMPLETE} />);
     // Magazine: suggestions rendered as blue-left-border blocks in section 02
-    expect(screen.getByText("可以更强的地方")).toBeInTheDocument();
+    expect(screen.getByText(/可以更强的地方|可以打磨|值得优化|提升空间|还可以更好|待改进|下次可以试试|优化的方向|精益求精|再推敲/)).toBeInTheDocument();
     expect(screen.getAllByText(/对话节奏可以更紧凑/).length).toBeGreaterThanOrEqual(1);
   });
 
