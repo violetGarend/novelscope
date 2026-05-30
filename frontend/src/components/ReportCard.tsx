@@ -500,7 +500,7 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
             <SideCol title="编辑笔记">
               {allHighlights.length > 0 && (
                 <p className="font-display italic text-[17px] leading-relaxed text-text-secondary">
-                  "{allHighlights[0]?.slice(0, 40)}..." —— 这一句是你本章的核心记忆点。
+                  &ldquo;{allHighlights[0]?.slice(0, 40)}...&rdquo; —— 这一句是你本章的核心记忆点。
                 </p>
               )}
               <div className="w-10 h-px bg-border my-3" />
@@ -540,7 +540,7 @@ function V2CompleteReport({ report }: { report: EvaluationResultV2 & { status: "
               </p>
               <div className="w-10 h-px bg-border my-3" />
               <p className="text-xs text-text-muted mt-5">
-                对话密度 {features.pacing.typeRatio.dialogue * 100}% 在网文中偏高，但需结合场景判断——对话承载核心情感时并非"水字数"。节奏曲线和 CV 数据见上方全宽图表。
+                对话密度 {features.pacing.typeRatio.dialogue * 100}% 在网文中偏高，但需结合场景判断——对话承载核心情感时并非&ldquo;水字数&rdquo;。节奏曲线和 CV 数据见上方全宽图表。
               </p>
             </SideCol>
           </Cols>
@@ -727,7 +727,7 @@ function OldReport({ report }: { report: EvaluationReport }) {
             </MainCol>
             <SideCol title="编辑笔记">
               <p className="font-display italic text-[17px] leading-relaxed text-text-secondary">
-                "{llmResult.highlights[0]?.slice(0, 40)}..." —— 这一句是你本章的核心记忆点。
+                &ldquo;{llmResult.highlights[0]?.slice(0, 40)}...&rdquo; —— 这一句是你本章的核心记忆点。
               </p>
             </SideCol>
           </Cols>
