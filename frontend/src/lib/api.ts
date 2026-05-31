@@ -12,7 +12,7 @@ function getApiBaseUrl(): string {
   }
 
   // 3. 本地开发
-  return process.env.NODE_ENV === "production" ? "https://api.novelscope.top" : "http://localhost:3001";
+  return "https://api.novelscope.top";
 }
 
 const API_BASE_URL = getApiBaseUrl();
