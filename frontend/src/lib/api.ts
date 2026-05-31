@@ -6,7 +6,7 @@ function getApiBaseUrl(): string {
   // 2. 运行时检测：如果前端部署在 novelscope.top 域名下
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    if (host.endsWith("novelscope.top")) {
+    if (host.endsWith("novelscope.top") || host.endsWith(".vercel.app")) {
       return "https://api.novelscope.top";
     }
   }
