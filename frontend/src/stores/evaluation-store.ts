@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type { ReportData } from "@/components/ReportCard";
 import { useHistoryStore } from "./history-store";
-import { getApiBaseUrl } from "@/lib/api";
 
 type Phase = "idle" | "evaluating" | "done" | "error";
 
@@ -65,7 +64,7 @@ export const useEvaluationStore = create<EvaluationState>()((set, get) => ({
     set({ abortController: controller });
 
     try {
-      const apiUrl = getApiBaseUrl();
+      const apiUrl = "https://api.novelscope.top";
       const response = await fetch(`${apiUrl}/api/evaluate/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
