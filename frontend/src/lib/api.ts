@@ -3,7 +3,7 @@ function getApiBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (envUrl) return envUrl;
 
-  // 2. 运行时检测：如果前端部署在 novelscope.top 域名下
+  // 2. 浏览器环境：检测域名
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
     if (host.endsWith("novelscope.top") || host.endsWith(".vercel.app")) {
@@ -11,8 +11,8 @@ function getApiBaseUrl(): string {
     }
   }
 
-  // 3. 本地开发默认值
-  return "http://localhost:3001";
+  // 3. 本地开发
+  return process.env.NODE_ENV === "production" ? "https://api.novelscope.top" : "http://localhost:3001";
 }
 
 const API_BASE_URL = getApiBaseUrl();
